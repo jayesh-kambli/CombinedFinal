@@ -190,12 +190,14 @@ document.addEventListener("DOMContentLoaded", () => {
                                         const allAttendanceData = JSON.parse(stuEle.attendance[0].attendance_data).atData;
                                         let [yyyy, mm, dd] = clsEle.start_id.split("-");
                                         const userDate = `${mm}-${dd}-${yyyy}`;
+                                        const percent = calculatePer(allAttendanceData, userDate);
+                                        const colorCls = percent >= 75 ? "green-circle" : "orange-circle";
                                         studentDataBlock.innerHTML += `<tr>
                                         <th scope="row">${stuEle.student_id}</th>
                                         <td>${stuEle.name}</td>
                                         <td>${stuEle.clss_id}</td>
                                         <td>+91 ${stuEle.phone_no}</td>
-                                        <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-ad" data-bs-toggle="modal" data-bs-target="#staticBackdropMain">${calculatePer(allAttendanceData, userDate)}% (view)</a></td>
+                                        <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-ad" data-bs-toggle="modal" data-bs-target="#staticBackdropMain">${percent}% (view) <span class="circle ${colorCls}"></span></a></td>
                                         <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-lr" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Leave Reaquests</a></td>
                                         <!-- <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-ed" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><ion-icon name="create"></ion-icon> Edit</a></td> -->
                                     </tr>`;

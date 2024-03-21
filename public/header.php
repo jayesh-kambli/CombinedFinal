@@ -27,13 +27,13 @@ if(!isset($_SESSION["admin_id"]))
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
-  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <!-- <link rel="stylesheet" href="../css/bootstrap.min.css">
   <link rel="stylesheet" href="../css/dataTables.bootstrap4.min.css">
   <script src="../js/jquery.min.js"></script>
   <script src="../js/popper.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
   <script src="../js/jquery.dataTables.min.js"></script>
-  <script src="../js/dataTables.bootstrap4.min.js"></script>
+  <script src="../js/dataTables.bootstrap4.min.js"></script> -->
 </head>
 <body>
 
