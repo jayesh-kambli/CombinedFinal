@@ -778,7 +778,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         const commData = JSON.parse(stuEle.comm);
                         if (commData.length > 0) {
                             commData.forEach((chat) => {
-                                if (!chat.read && (chat.sender=="student")) {
+                                // console.log(data.dataTr.teacher_id);
+                                if (!chat.read && (chat.sender=="student") && (chat.teacher_id==data.dataTr.teacher_id)) {
                                     unread++;
                                 }
                             })
@@ -834,7 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 //filter for this teacher
                                 // const res = JSON.parse(allComm.commData).commData.filter(ele => ele.teacher_id == trId);
                                 const res = JSON.parse(allComm.commData) ? JSON.parse(allComm.commData).filter(ele => ele.teacher_id == trId) : [];
-
+                                // console.log(JSON.parse(allComm.commData));
                                 if (allComm.success) {
                                     const messages = res;
 

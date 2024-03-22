@@ -31,21 +31,56 @@ if (!isset($requestData->class_id) || !is_numeric($requestData->class_id)) {
         );
     } else {
         // Function to fetch teachers assigned to a class
-        function getTeachersByClassId($classId, $conn) {
-            $sql = "SELECT * FROM teacher WHERE teacher_id IN 
-                    (SELECT DISTINCT teacher FROM subject WHERE class = $classId)";
+        // function getTeachersByClassId($classId, $conn)
+        // {
+        //     $sql = "SELECT * FROM teacher WHERE teacher_id IN 
+        //             (SELECT DISTINCT teacher FROM subject WHERE class = $classId)";
+        //     $result = mysqli_query($conn, $sql);
+
+        //     $teachers = array();
+        //     if (mysqli_num_rows($result) > 0) {
+        //         // Output data of each row
+        //         while ($row = mysqli_fetch_assoc($result)) {
+        //             $teachers[] = $row;
+        //         }
+        //     }
+
+        //     return $teachers;
+        // }
+
+        // Function to fetch teachers assigned to a class
+        function getTeachersByClassId($classId, $conn)
+        {
+            // Initialize an empty array to store teachers
+            $teachers = array();
+
+            // SQL query to select teachers assigned to the given class ID
+            $sql = "SELECT * FROM teacher WHERE teacher_id IN (SELECT teacher FROM class WHERE class_id = $classId)";
+
+            // Execute the query
             $result = mysqli_query($conn, $sql);
 
-            $teachers = array();
-            if (mysqli_num_rows($result) > 0) {
-                // Output data of each row
+            // Check if the query was successful
+            if ($result) {
+                // Fetch data and add each teacher to the teachers array
                 while ($row = mysqli_fetch_assoc($result)) {
-                    $teachers[] = $row;
+                    $teachers[] = array(
+                        'teacher_id' => $row['teacher_id'],
+                        'name' => $row['name'],
+                        'email' => $row['email']
+                    );
                 }
+                // Free result set
+                mysqli_free_result($result);
+            } else {
+                // If the query fails, set teachers array to empty
+                $teachers = array();
             }
 
+            // Return the array of teachers
             return $teachers;
         }
+
 
         // Fetch teachers based on the class ID
         $teachers = getTeachersByClassId($classId, $db);
@@ -64,4 +99,3 @@ if (!isset($requestData->class_id) || !is_numeric($requestData->class_id)) {
 // Output JSON response
 header('Content-Type: application/json');
 echo json_encode($response);
-?>

@@ -272,6 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
           .then(response => response.json())
           .then(trsData => {
+            console.log("needed");
             console.log(trsData);
 
             const parentSec = document.getElementById("parsec");
