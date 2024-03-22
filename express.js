@@ -4,7 +4,7 @@ const { SerialPort } = require('serialport');
 const cors = require('cors');
 const path = require('path');
 
-const portName = 'COM4'; // Change this to the port name your Arduino is connected to
+const portName = 'COM3'; // Change this to the port name your Arduino is connected to
 const baudRate = 9600;   // Match this with the baud rate of your Arduino
 
 const port = new SerialPort({ path: portName, baudRate: baudRate });

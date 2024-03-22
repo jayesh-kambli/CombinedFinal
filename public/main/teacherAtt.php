@@ -1,6 +1,6 @@
 <?php
 
-include('../database_connection.php');
+include ('../database_connection.php');
 
 session_start();
 
@@ -12,6 +12,7 @@ session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Student Attendance System in PHP using Ajax</title>
   <meta charset="utf-8">
@@ -34,54 +35,63 @@ session_start();
   <script src="../js/jquery.dataTables.min.js"></script>
   <script src="../js/dataTables.bootstrap4.min.js"></script>
 </head>
+
 <body>
 
-<div class="jumbotron-small text-center" style="margin-bottom:0">
-  <h1>Student Attendance System</h1>
-</div>
+  <div class="jumbotron-small text-center" style="margin-bottom:0">
+    <h1>Student Attendance System</h1>
+  </div>
 
-<div class="container" style="margin-top:30px">
-  <div class="card">
-    <div class="card-header">
-      <div class="row">
-        <div class="col-md-9">Attendance List</div>
-        <div class="col-md-3" >
-          <!-- <button type="button" id="chart_button" class="btn btn-primary btn-sm">Chart</button>
+  <div class="container" style="margin-top:30px">
+    <div class="card">
+      <div class="card-header">
+        <div class="row">
+          <div class="col-md-9">Attendance List</div>
+          <div class="col-md-3">
+            <!-- <button type="button" id="chart_button" class="btn btn-primary btn-sm">Chart</button>
           <button type="button" id="report_button" class="btn btn-danger btn-sm">Report</button> -->
+          </div>
         </div>
       </div>
-    </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <span id="message_operation"></span>
-        <div class="form-group">
-          <label for="filter_class">Filter by Class:</label>
-          <select name="filter_class" id="filter_class" class="form-control">
-            <option value="">All Classes</option>
-            <?php
-            echo load_class_list($connect); // Assuming load_class_list function is defined elsewhere
-            ?>
-          </select>
+      <div class="card-header bg-warning" id="scanStatusColor">
+        <div class="row">
+          <div class="spinner-grow" role="status" id="dload"><span class="visually-hidden"></span></div>
+          <div class="d-flex align-items-center">
+            <div class="col-md-12" id="scanStatus">Connecting to arduino...</div>
+          </div>
         </div>
-        <table class="table table-striped table-bordered" id="attendance_table">
-          <thead>
-            <tr>
-              <th>Student Name</th>
-              <th>Rf id</th>
-              <th>class</th>
-              <th>Attendance data</th>
-              <th>Attendance Date</th>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <span id="message_operation"></span>
+          <div class="form-group">
+            <label for="filter_class">Filter by Class:</label>
+            <select name="filter_class" id="filter_class" class="form-control">
+              <option value="">All Classes</option>
+              <?php
+              echo load_class_list($connect); // Assuming load_class_list function is defined elsewhere
+              ?>
+            </select>
+          </div>
+          <table class="table table-striped table-bordered" id="attendance_table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Rf id</th>
+                <th>class</th>
+                <th>Attendance data</th>
+                <th>Attendance Date</th>
 
-            </tr>
-          </thead>
-          <tbody id="attendanceTable">
+              </tr>
+            </thead>
+            <tbody id="attendanceTable">
 
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 </body>
 
@@ -180,10 +190,15 @@ session_start();
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const scanStatus = document.getElementById("scanStatus");
+    const scanStatusColor = document.getElementById("scanStatusColor");
+    // actionLoad("hidden", "Ready For", "card-header bg-danger");
     function recId() {
       let scanInitiated = false; // Flag to track if RFID scan has already been initiated
+      let checkerror = false;
       fetch('http://localhost:3000/startScan') // Send a GET request to the server
         .then(response => {
+          actionLoad("hidden", "Ready For scan", "card-header bg-success");
           if (response.ok) {
             return response.text();
           } else {
@@ -192,7 +207,7 @@ session_start();
         })
         .then(data => {
           console.log('RFID scan started: ' + data);
-
+          
           let rf = data;
           // Fetch attendance data using the Fetch API
           fetch('../php/write.php', {
@@ -205,120 +220,145 @@ session_start();
               type: 'getStuData',
             }),
           })
-            .then(response => response.json())
-            .then(data => {
-              console.log(data);
-              // Check if data is not empty and has the expected structure
-              if (Array.isArray(data) && data.length > 0 && data[0].attendance_data) {
-                // Assuming the first element in the array contains the attendance data
-                const attendanceData = data[0];
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+            if (data.length > 0) {
+                actionLoad("visible", "Marking attendance...", "card-header bg-info");
+                // Check if data is not empty and has the expected structure
+                if (Array.isArray(data) && data.length > 0 && data[0].attendance_data) {
+                  // Assuming the first element in the array contains the attendance data
+                  const attendanceData = data[0];
 
-                // Parse the stringified JSON
-                const parsedAttendanceData = JSON.parse(attendanceData.attendance_data);
+                  // Parse the stringified JSON
+                  const parsedAttendanceData = JSON.parse(attendanceData.attendance_data);
 
-                // Get today's date and time
-                const today = new Date();
-                const currentDate = today.getDate();
-                const currentMonth = today.getMonth() + 1; // Months are zero-indexed
-                const currentYear = today.getFullYear();
-                var currentTime = ("0" + today.getHours()).slice(-2) + ":" + ("0" + today.getMinutes()).slice(-2);
-                // console.log(time);
-                // const currentTime = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                  // Get today's date and time
+                  const today = new Date();
+                  const currentDate = today.getDate();
+                  const currentMonth = today.getMonth() + 1; // Months are zero-indexed
+                  const currentYear = today.getFullYear();
+                  var currentTime = ("0" + today.getHours()).slice(-2) + ":" + ("0" + today.getMinutes()).slice(-2);
+                  // console.log(time);
+                  // const currentTime = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
-                // Find the corresponding month and year in the parsed attendance data
-                const monthYearKey = `${String(currentMonth).padStart(2, '0')}-${currentYear}`;
-                const monthData = parsedAttendanceData.atData.find(entry => entry.yearMonth === monthYearKey);
+                  // Find the corresponding month and year in the parsed attendance data
+                  const monthYearKey = `${String(currentMonth).padStart(2, '0')}-${currentYear}`;
+                  const monthData = parsedAttendanceData.atData.find(entry => entry.yearMonth === monthYearKey);
 
-                // Check if the month data is found
-                if (monthData) {
-                  // Find today's date in the days array and mark present
-                  const todayIndex = currentDate - 1;
-                  if (monthData.days && monthData.days[todayIndex] !== undefined) {
-                    if (!monthData.days[todayIndex]) {//condition
-                      monthData.days[todayIndex] = 1;
-                      // Add current time to the times array
-                      if (monthData.times && monthData.times[todayIndex] !== undefined) {
-                        monthData.times[todayIndex] = currentTime;
-                      }
-                      console.log(currentTime);
+                  // Check if the month data is found
+                  if (monthData) {
+                    // Find today's date in the days array and mark present
+                    const todayIndex = currentDate - 1;
+                    if (monthData.days && monthData.days[todayIndex] !== undefined) {
+                      if (!monthData.days[todayIndex]) {//condition
+                        monthData.days[todayIndex] = 1;
+                        // Add current time to the times array
+                        if (monthData.times && monthData.times[todayIndex] !== undefined) {
+                          monthData.times[todayIndex] = currentTime;
+                        }
+                        console.log(currentTime);
 
-                      // Print the modified attendance data
-                      let callBody = JSON.stringify({
-                        "rfid": rf,
-                        "type": 'putStuData',
-                        "data": parsedAttendanceData,
-                      });
-
-                      console.log(callBody);
-
-                      fetch('../php/write.php', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: callBody,
-                      })
-                        .then(response => response.json())
-                        .then(data => {
-                          // console.log(data);
-                          var currentDate = new Date();
-                          var day = currentDate.getDate();
-                          var monthIndex = currentDate.getMonth();
-                          var hours = currentDate.getHours();
-                          var minutes = currentDate.getMinutes();
-                          var monthNames = ["January", "February", "March", "April", "May", "June",
-                            "July", "August", "September", "October", "November", "December"
-                          ];
-                          var formattedDateTime = day + " " + monthNames[monthIndex] + " " + (hours < 10 ? '0' : '') + hours + ":" + (minutes < 10 ? '0' : '') + minutes;
-
-                          // Print the formatted date and time
-                          // console.log(formattedDateTime);
-                          const parent = Array.from(document.getElementById("attendanceTable").children);
-                          console.log(parent);
-                          parent.forEach((ele) => {
-                            if(Array.from(ele.children)[1].innerText == rf) {
-                              Array.from(ele.children)[3].innerHTML = `<label class="badge badge-success">Present</label>`;
-                            }
-                          });
-                          iziToast.success({
-                            title: data.stData[0].name,
-                            message: formattedDateTime,
-                            timeout: 3000,
-                            position: 'bottomLeft'
-                          });
-                        })
-                        .catch(error => {
-                          console.error('Error:', error);
+                        // Print the modified attendance data
+                        let callBody = JSON.stringify({
+                          "rfid": rf,
+                          "type": 'putStuData',
+                          "data": parsedAttendanceData,
                         });
-                    } else {
-                      iziToast.warning({
-                        title: "Already marked",
-                        message: "",
-                        timeout: 3000,
-                        position: 'bottomLeft'
-                      });
-                    }
-                  }
 
+                        console.log(callBody);
+
+                        fetch('../php/write.php', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: callBody,
+                        })
+                          .then(response => response.json())
+                          .then(data => {
+                            // console.log(data);
+                            var currentDate = new Date();
+                            var day = currentDate.getDate();
+                            var monthIndex = currentDate.getMonth();
+                            var hours = currentDate.getHours();
+                            var minutes = currentDate.getMinutes();
+                            var monthNames = ["January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"
+                            ];
+                            var formattedDateTime = day + " " + monthNames[monthIndex] + " " + (hours < 10 ? '0' : '') + hours + ":" + (minutes < 10 ? '0' : '') + minutes;
+
+                            // Print the formatted date and time
+                            // console.log(formattedDateTime);
+                            const parent = Array.from(document.getElementById("attendanceTable").children);
+                            console.log(parent);
+                            parent.forEach((ele) => {
+                              if (Array.from(ele.children)[1].innerText == rf) {
+                                Array.from(ele.children)[3].innerHTML = `<label class="badge badge-success">Present</label>`;
+                              }
+                            });
+                            iziToast.success({
+                              title: data.stData[0].name,
+                              message: formattedDateTime,
+                              timeout: 3000,
+                              position: 'bottomLeft'
+                            });
+                            actionLoad("visible", "Ready For scan...", "card-header bg-success"); //remove to see change
+                          })
+                          .catch(error => {
+                            actionLoad("visible", "Ready For scan...", "card-header bg-success");
+                            console.error('Error:', error);
+                          });
+                      } else {
+                        actionLoad("visible", "Ready For scan...", "card-header bg-success");
+                        iziToast.warning({
+                          title: "Already marked",
+                          message: "",
+                          timeout: 3000,
+                          position: 'bottomLeft'
+                        });
+                      }
+                    }
+
+                  }
                 }
+              } else {
+              actionLoad("visible", "Ready For scan...", "card-header bg-success");
+                iziToast.warning({
+                  title: "RFID not registered",
+                  message: "",
+                  timeout: 3000,
+                  position: 'bottomLeft'
+                });
               }
             })
             .catch(error => {
+              actionLoad("visible", "Ready For scan...", "card-header bg-success");
               console.error('Error:', error);
-            });
+            })
 
           recId();
           scanInitiated = false; // Reset the flag to allow subsequent scans
         })
         .catch(error => {
+          checkerror = true;
+          actionLoad("hidden", "Failed to connect with arduino", "card-header bg-danger");
           console.error('Error:', error.message);
-        });
+        })
+      if (!checkerror) {
+        actionLoad("visible", "Ready For scan...", "card-header bg-success");
+      }
     }
 
     recId();
     onstart();
   });
 
+  function actionLoad(hid, msg, clas) {
+    document.getElementById("dload").style.visibility = hid;
+    scanStatus.innerHTML = msg;
+    scanStatusColor.className = clas;
+  }
 
   function callData() {
     var dataTable = null;

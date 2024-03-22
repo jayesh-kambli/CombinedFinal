@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                             </li>`;
                         });
-                        
+
                         if (subEle.class == classEle.class_id) {
                             subPar.innerHTML += `<div class="col-12  d-flex justify-content-center align-items-center mt-2">
                             <div class="card text-center container-fluid">
@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         <td>${stuEle.name}</td>
                                         <td>${stuEle.clss_id}</td>
                                         <td>+91 ${stuEle.phone_no}</td>
-                                        <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-ad" data-bs-toggle="modal" data-bs-target="#staticBackdropMain">${percent}% (view) <span class="circle ${colorCls}"></span></a></td>
+                                        <td ><a class="link-offset-2 link-underline link-underline-opacity-100 d-flex align-items-center" href="#" id="${stuEle.student_id}-ad" data-bs-toggle="modal" data-bs-target="#staticBackdropMain"><span class="circle ${colorCls} me-1"></span> ${percent}% (view)</a></td>
                                         <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-lr" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Leave Reaquests</a></td>
                                         <!-- <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-ed" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><ion-icon name="create"></ion-icon> Edit</a></td> -->
                                     </tr>`;
@@ -458,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 allAssign.addEventListener("click", function (event) {
                     if (event.target.tagName === "BUTTONB") {
                         var [clickedId, name, type, aId, cId] = event.target.id.split("-");
-                        
+
                         // console.log(clickedId, name, type, aId, cId);
                         //if add assignment
                         if (type == "add") {
@@ -599,9 +599,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                             </thead>
                                             <tbody id="subDetails"></tbody>
                                         </table>`
-                                        let submitedCount = 0; 
-                                        let notSubmitedCount = 0; 
-                                        let participantsAssignments = 0; 
+                                        let submitedCount = 0;
+                                        let notSubmitedCount = 0;
+                                        let participantsAssignments = 0;
                                         console.log(dataSub);
                                         const bodyAbtSub = document.getElementById("subDetails");
                                         let flag4 = false;
@@ -762,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" style="width: 100%;"
                     data-bs-target="#collapse-${classEle.class_id}" aria-expanded="false"
                     aria-controls="collapse${classEle.class_id}">
-                    ${classEle.name}
+                    ${classEle.name} <span id="showDotForMessage-${classEle.class_id}" class=""></span>
                     </button>
                     </h2>
                     <div id="collapse-${classEle.class_id}" class="accordion-collapse collapse" data-bs-parent="#parsec">
@@ -771,7 +771,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     </div>
                     </div>`;
-                    classEle.students.forEach((stuEle) => document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name}</a>`);
+                    let checkUnreadinClass = false;
+                    classEle.students.forEach((stuEle) => {
+                        let unread = 0;
+                        let notiHtml;
+                        const commData = JSON.parse(stuEle.comm);
+                        if (commData.length > 0) {
+                            commData.forEach((chat) => {
+                                if (!chat.read && (chat.sender=="student")) {
+                                    unread++;
+                                }
+                            })
+                            notiHtml = unread > 0 ? notiHtml = `<span class="badge rounded-pill text-bg-warning">${unread} New Message</span>` : "";
+                        }
+
+                        if (notiHtml) {
+                            checkUnreadinClass = true;
+                            document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name} ${notiHtml}</a>`;
+                        } else {
+                            document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name}</a>`;
+                        }
+                    });
+                    if(checkUnreadinClass) {
+                        document.getElementById(`showDotForMessage-${classEle.class_id}`).className = "badge rounded-pill text-bg-warning mx-1";
+                        document.getElementById(`showDotForMessage-${classEle.class_id}`).innerHTML = "New Message";
+                    }
                 });
 
                 document.getElementById("parsec").addEventListener("click", (event) => {
@@ -805,6 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 const result = await response.json();
                                 // console.log(JSON.parse(JSON.stringify(result)));
                                 const allComm = JSON.parse(JSON.stringify(result));
+                                console.log(allComm);
 
                                 //filter for this teacher
                                 // const res = JSON.parse(allComm.commData).commData.filter(ele => ele.teacher_id == trId);
@@ -1003,6 +1028,11 @@ document.addEventListener("DOMContentLoaded", () => {
     myModal._element.addEventListener('hidden.bs.modal', function () {
         localStorage.clear("listLeaveReaquests");
         localStorage.removeItem("listLeaveReaquests");
+        location.reload();
+    });
+
+    var myModal2 = new bootstrap.Modal(document.getElementById('exampleModal-ptc'));
+    myModal2._element.addEventListener('hidden.bs.modal', function () {
         location.reload();
     });
 

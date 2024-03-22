@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (username.includes("@")) {
             const [a, b] = username.split("@");
-            console.log(b);
             if (b === 'tr.com') {
                 typeInfo = 'tr';
             } else {

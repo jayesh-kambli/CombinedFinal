@@ -36,6 +36,8 @@ document.addEventListener("DOMContentLoaded", function () {
               let [yyyy, mm, dd] = data.data[0].start_id.split("-");
               const userDate = `${mm}-${dd}-${yyyy}`;
               const mainChij = calculatePer(allAttendanceData, userDate);
+              document.getElementById("catten").innerHTML = ` Classes Attended ${mainChij}%`
+              document.getElementById("cnotstten").innerHTML = ` Classes Attended ${100-mainChij}%`
               // console.log(mainChij);
               new Chart(document.getElementById("pie-chart"), {
                 type: "pie",
@@ -274,7 +276,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const parentSec = document.getElementById("parsec");
             parentSec.innerHTML = ``;
-            trsData.teachers.forEach((trsEle) => parentSec.innerHTML += `<a href="#" id="${trsEle.teacher_id}-inlist" class="list-group-item list-group-item-action">${trsEle.name}</a>`);
+            trsData.teachers.forEach((trsEle) => {
+              let unread = 0;
+              const allChats = JSON.parse(data.student.comm);
+              allChats.forEach((chat) => {
+                if (!chat.read && (chat.sender == "teacher")) {
+                  unread++;
+                }
+              })
+              if (unread > 0) {
+                parentSec.innerHTML += `<a href="#" id="${trsEle.teacher_id}-inlist" class="list-group-item list-group-item-action">${trsEle.name} <span class="badge rounded-pill text-bg-warning">${unread} New Message</span></a>`;
+              } else {
+                parentSec.innerHTML += `<a href="#" id="${trsEle.teacher_id}-inlist" class="list-group-item list-group-item-action">${trsEle.name}</a>`;
+              }
+            });
             //start ==>
             document.getElementById("parsec").addEventListener("click", (event) => {
               if (event.target.tagName == "A") {
@@ -753,7 +768,8 @@ document.addEventListener("DOMContentLoaded", function () {
               const file = fileInput.files[0];
               // console.log(clickedId, studentId)
 
-              if (clickedId && studentId && file) {
+              if (file) {
+                // if (clickedId && studentId && file) {
                 const formData = new FormData();
                 formData.append('assignment_id', clickedId);
                 formData.append('student_id', studentId);
@@ -796,7 +812,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                   iziToast.error({
                     title: "Failed",
-                    message: "Select File",
+                    message: "Assignment submission deadline has passed",
                     position: "topLeft",
                   });
                 }
@@ -820,6 +836,11 @@ document.addEventListener("DOMContentLoaded", function () {
   //disable previous date in leave request calender
   validateCalender("exampleDropdownFormEmail1");
   validateCalender("exampleDropdownFormEmail2");
+
+  var myModal2 = new bootstrap.Modal(document.getElementById('exampleModal-ptc'));
+  myModal2._element.addEventListener('hidden.bs.modal', function () {
+    location.reload();
+  });
 
 });
 function validateCalender(calId) {
