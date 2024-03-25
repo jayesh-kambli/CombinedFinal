@@ -64,11 +64,8 @@
               class="mx-1"> Contact : Loading.......</small><br /><br /></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <!-- Button trigger modal -->
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-            Change password
-          </button>
+          <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#exampleModalforResetParentPass">Change Parents Password</button>
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Change password</button>
         </div>
       </div>
     </div>
@@ -273,7 +270,7 @@
           <h2 class="accordion-header">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
               data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-              Leave Reaquests
+              Leave Requests
             </button>
           </h2>
           <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
@@ -289,9 +286,89 @@
       </div>
     </div>
 
-    <div class="rad m-3">
-      <h5 class="m-3 raw2 rounded p-2">Parents Communication</h5>
-      <div class="mb-3 mx-3 raw2 rounded p-2 list-group" id="parsec"></div>
+
+    <!-- <div class="rad m-3 section locked-section">
+      <div class="locked-overlay">
+        <span class="lock-icon">&#x1F512;</span> Locked Section
+        <button class="unlock-button" onclick="unlockSection(this)">Unlock</button>
+      </div>
+      <h2>Locked Section</h2>
+      <p>This section is locked. Hover over to see why.</p>
+      <div class="rad m-3">
+        <div class="m-3 raw2 rounded p-2">
+          <h5 class="">Parents Communication</h5>
+          <button class="lock-button" onclick="lockSection(this)">Lock</button>
+        </div>
+        <div class="mb-3 mx-3 raw2 rounded p-2 list-group" id="parsec"></div>
+      </div>
+    </div> -->
+
+    <div class="rad m-3 section locked-section" id="lockedSection">
+      <div class="locked-overlay" id="lockedOverlay">
+        Need password to unlock
+        <button class="unlock-button d-flex justify-content-between align-items-center" id="unlockButton" data-bs-toggle="modal" data-bs-target="#exampleModalforParentPass"><ion-icon class="mx-1" name="lock-open-outline"></ion-icon>Unlock</button>
+      </div>
+      <div class="rad">
+        <div class="mx-3 raw2 rounded p-2 d-flex justify-content-between align-items-center">
+          <h5 class="">Parents Communication</h5>
+          <button class="lock-button d-flex justify-content-between align-items-center" id="lockButton"><ion-icon class="mx-1" name="lock-closed-outline"></ion-icon>Lock</button>
+        </div>
+        <div class="mb-3 mx-3 raw2 rounded p-2 list-group" id="parsec"></div>
+      </div>
+    </div>
+
+    <br class="mt-3">
+
+    <!-- model for parent password -->
+    <div class="modal fade" id="exampleModalforParentPass" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Required password</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group">
+              <div class="input-group-text">Password</div>
+              <input type="password" class="form-control" placeholder="password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforPar">
+            </div>          
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" id="buttonForParentPassCheck" class="btn btn-primary">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- model to reset parent password -->
+    <div class="modal fade" id="exampleModalforResetParentPass" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Set password <span class="badge text-bg-warning">Parent</span></h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group" id="currentPassSection">
+              <div class="input-group-text" style="width: 200px;">Current Password</div>
+              <input type="password" class="form-control" placeholder="old password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforCurrPass">
+            </div>
+            <div class="input-group mt-2">
+              <div class="input-group-text" style="width: 200px;">New Password*</div>
+              <input type="password" class="form-control" placeholder="new password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforNewPass">
+            </div>
+            <div class="input-group mt-2">
+              <div class="input-group-text" style="width: 200px;">Confirm Password*</div>
+              <input type="password" class="form-control" placeholder="new password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforNewPass2">
+            </div>   
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" id="buttonForParentPassUpdate" class="btn btn-primary">Confirm</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- model for chat -->
@@ -319,9 +396,9 @@
     </div>
 
   </main>
-  <footer style="height: 20vh;">
+  <!-- <footer style="height: 20vh;">
 
-  </footer>
+  </footer> -->
 </body>
 
 </html>

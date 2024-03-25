@@ -15,6 +15,13 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
+          let storeHtml;
+          if (data.student.ppass == "") {
+            // document.getElementById("currentPassSection").style.display = 'block';
+            storeHtml = document.getElementById("currentPassSection").innerHTML;
+            document.getElementById("currentPassSection").innerHTML = "";
+            $('#exampleModalforResetParentPass').modal('show');
+          }
           console.log(data.student)
           document.getElementById("nameOfStudent").innerHTML = `Hello, ${data.student.name}`
           const allAttendanceData = JSON.parse(
@@ -37,12 +44,12 @@ document.addEventListener("DOMContentLoaded", function () {
               const userDate = `${mm}-${dd}-${yyyy}`;
               const mainChij = calculatePer(allAttendanceData, userDate);
               document.getElementById("catten").innerHTML = ` Classes Attended ${mainChij}%`
-              document.getElementById("cnotstten").innerHTML = ` Classes Attended ${100-mainChij}%`
+              document.getElementById("cnotstten").innerHTML = ` Classes Not Attended ${100 - mainChij}%`
               // console.log(mainChij);
               new Chart(document.getElementById("pie-chart"), {
                 type: "pie",
                 data: {
-                  // labels: ["Africa", "Asia", "Europe", "Latin America", "North America"],
+                  // labels: ['Present', 'Not Present'],
                   datasets: [
                     {
                       label: "Attendance (millions)",
@@ -56,6 +63,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     display: false,
                     text: "Predicted world population (millions) in 2050",
                   },
+                  tooltips: {
+                    enabled: false
+                  }
                 },
               });
               document.getElementById("pie-chart").style.height = "30em";
@@ -124,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const date2 = new Date(dateString2.split("-").reverse().join("-"));
             const timeDifference = date2 - date1;
             const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-            return Math.floor(daysDifference);
+            return Math.floor(daysDifference) + 1;
           }
           // console.log(data.student);
           let leaveReqParent = document.getElementById("leaveReqGroup");
@@ -152,6 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     : "Accepted";
               // Perform operations with each leave request
               // console.log(request);
+              let dayOrDays = dateDiffInDays(request.from, request.to) > 1 ? "Days" : "Day";
               leaveReqParent.innerHTML += `<a href="#" class="list-group-item list-group-item-action">
                   <div class="d-flex w-100 justify-content-between">
                   <p class="mb-1">${request.reason}</p>
@@ -159,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }</small>
                   </div>
                   Interval: <small>${request.from} - ${request.to
-                } / ${dateDiffInDays(request.from, request.to)} Days</small><br>
+                } / ${dateDiffInDays(request.from, request.to)} ${dayOrDays}</small><br>
                   Status: <small class="${classNm} p-1 rounded">${statusMessage}</small>
                 </a>`;
             });
@@ -255,8 +266,112 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="d-flex justify-content-start align-items-center"><ion-icon name="id-card-outline"></ion-icon> <small class="mx-1"> Student id : ${sData.student_id}</small><br/><br/></div>
             <div class="d-flex justify-content-start align-items-center"><ion-icon name="mail-open-outline"></ion-icon> <small class="mx-1"> email: ${sData.email}</small><br/><br/></div>
             <div class="d-flex justify-content-start align-items-center"><ion-icon name="call-outline"> </ion-icon><small class="mx-1"> Contact : ${sData.phone_no}</small><br/><br/></div>`;
+
+          var unlockButton = document.getElementById('unlockButton');
+          var lockButton = document.getElementById('lockButton');
+          var lockedSection = document.getElementById('lockedSection');
+          var lockedOverlay = document.getElementById('lockedOverlay');
+
+          document.getElementById("buttonForParentPassCheck").addEventListener("click", (event) => {
+            console.log(document.getElementById("btnGroupAddOnforPar").value, data.student.ppass)
+            if (data.student.ppass == document.getElementById("btnGroupAddOnforPar").value) {
+              iziToast.success({
+                title: "Unlocked",
+                message: "",
+                position: "topLeft",
+              });
+              lockedSection.classList.remove('locked-section');
+              lockedOverlay.style.display = 'none';
+              $('#exampleModalforParentPass').modal('hide');
+            } else {
+              iziToast.error({
+                title: "Wrong Password",
+                message: "",
+                position: "topLeft",
+              });
+            }
+          });
+
+          lockButton.addEventListener('click', function () {
+            lockedSection.classList.add('locked-section');
+            lockedOverlay.style.display = 'flex';
+          });
+
+          document.getElementById("buttonForParentPassUpdate").addEventListener('click', (event) => {
+            const currPass = document.getElementById("btnGroupAddOnforCurrPass") ? document.getElementById("btnGroupAddOnforCurrPass").value : "";
+            const newPass = document.getElementById("btnGroupAddOnforNewPass").value;
+            const newPass2 = document.getElementById("btnGroupAddOnforNewPass2").value;
+            function clearValue(id) {
+              if (document.getElementById(id)) {
+                document.getElementById(id).value = "";
+              }
+            }
+            if (currPass == data.student.ppass) {
+              if (newPass == newPass2) {
+                if (newPass != currPass) {
+                  async function updateStudentPass(studentId, newPass) {
+                    try {
+                      const response = await fetch('./php/chParPass.php', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          student_id: studentId,
+                          ppass: newPass
+                        })
+                      });
+
+                      const responseData = await response.json(); // Parse response as JSON
+                      if (responseData.success) {
+                        iziToast.success({
+                          title: "Password Changed",
+                          message: "",
+                          position: "topLeft",
+                        });
+                        clearValue("btnGroupAddOnforCurrPass");
+                        clearValue("btnGroupAddOnforNewPass");
+                        clearValue("btnGroupAddOnforNewPass2");
+                        data.student.ppass = newPass2;
+                        // document.getElementById("currentPassSection").style.display = 'visible';
+                        if (storeHtml) {
+                          document.getElementById("currentPassSection").innerHTML = storeHtml;
+                        }
+                        $('#exampleModalforResetParentPass').modal('hide');
+                        // console.log('Password updated successfully');
+                      } else {
+                        console.error('Error:', responseData.error);
+                      }
+                    } catch (error) {
+                      console.error('Error:', error);
+                    }
+                  }
+                  updateStudentPass(data.student.student_id, newPass);
+                } else {
+                  iziToast.warning({
+                    title: "Old & New password can't be same",
+                    message: "",
+                    position: "topLeft",
+                  });
+                }
+              } else {
+                iziToast.error({
+                  title: "New password dosent match",
+                  message: "",
+                  position: "topLeft",
+                });
+              }
+            } else {
+              iziToast.error({
+                title: "Incorrect Current Password",
+                message: "",
+                position: "topLeft",
+              });
+            }
+          });
+
         } else {
-          console.log("failed");
+          console.log("Login Again");
         }
 
 
@@ -272,8 +387,8 @@ document.addEventListener("DOMContentLoaded", function () {
         })
           .then(response => response.json())
           .then(trsData => {
-            console.log("needed");
-            console.log(trsData);
+            // console.log("needed");
+            // console.log(trsData);
 
             const parentSec = document.getElementById("parsec");
             parentSec.innerHTML = ``;
@@ -299,12 +414,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("msgHandle").innerHTML = `<input type="text" id="message-input" placeholder="Type your message...">
                   <button id="msg-send-button"><span id="myElement" class="spinner-border spinner-border-sm" aria-hidden="true"></span> Send</button>`;
                 document.getElementById("myElement").style.visibility = "hidden";
-
+                let messages = '';
                 async function fetchComm(studentId) {
                   try {
                     const data = {
                       type: "call",
-                      student_id: studentId
+                      student_id: studentId,
+                      sender: "student"
                     };
 
                     const response = await fetch('./php/comm/comm.php', {
@@ -322,6 +438,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     //all communication(of all teachers)
                     const result = await response.json();
+                    // console.log(result);
                     // console.log(JSON.parse(JSON.stringify(result)));
                     const allComm = JSON.parse(JSON.stringify(result));
 
@@ -329,31 +446,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     const res = JSON.parse(allComm.commData) ? JSON.parse(allComm.commData).filter(ele => ele.teacher_id == teacherId) : [];
 
                     if (allComm.success) {
-                      const messages = res;
+                      messages = res;
 
-                      function displayMessages() {
-                        const chatBox = document.getElementById('chat-box');
-                        chatBox.innerHTML = '';
 
-                        messages.slice().reverse().forEach(message => { // Reverse the order of messages before rendering
-                          const messageDiv = document.createElement('div');
-                          messageDiv.classList.add('message', message.sender);
-
-                          const contentDiv = document.createElement('div');
-                          contentDiv.classList.add('message-content');
-                          contentDiv.textContent = message.content;
-
-                          const timestampDiv = document.createElement('div');
-                          timestampDiv.classList.add('message-timestamp');
-                          timestampDiv.textContent = formatTimestamp(message.timestamp);
-
-                          messageDiv.appendChild(contentDiv);
-                          messageDiv.appendChild(timestampDiv);
-
-                          chatBox.appendChild(messageDiv);
-                        });
-                      }
-                      displayMessages();
+                      displayMessages(messages);
                       document.getElementById("msg-send-button").addEventListener("click", (event) => {
                         document.getElementById("myElement").style.visibility = "visible";
                         const messageInput = document.getElementById('message-input');
@@ -384,7 +480,7 @@ document.addEventListener("DOMContentLoaded", function () {
                           .then(response => response.json())
                           .then(data => {
                             messages.push(newMessage);
-                            displayMessages();
+                            displayMessages(messages);
                             messageInput.value = '';
                             console.log(data);
                             document.getElementById("myElement").style.visibility = "hidden";
@@ -404,6 +500,67 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.log(data.student.student_id);
                 fetchComm(data.student.student_id);
                 $('#exampleModal-ptc').modal('show');
+
+                //live chat check call
+                function checkForChanges() {
+                  fetch('php/comm/comm.php', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      type: "check",
+                      student_id: data.student.student_id,
+                      sender: "student",
+                      teacher: teacherId
+                    }),
+                  })
+                    .then(response => response.json())
+                    .then(msgData => {
+                      // console.log(msgData);
+                      if (msgData.changed) {
+                        const allComm = JSON.parse((msgData.message));
+                        // console.log(allComm, teacherId)
+                        const res = allComm ? allComm.filter(ele => ele.teacher_id == teacherId) : [];
+                        displayMessages(res);
+                        messages = res;
+                      }
+                      // else {
+                      //   console.log(msgData.message);
+                      // }
+                    })
+                    .catch(error => {
+                      // document.getElementById("myElement").style.visibility = "hidden";
+                      console.error('Error:', error);
+                    });
+                }
+                // checkForChanges();
+                setInterval(checkForChanges, 2500);
+
+                function displayMessages(msg) {
+                  const chatBox = document.getElementById('chat-box');
+                  chatBox.innerHTML = '';
+
+                  msg.slice().reverse().forEach(message => { // Reverse the order of messages before rendering
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message', message.sender);
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.classList.add('message-content');
+                    contentDiv.textContent = message.content;
+
+                    const timestampDiv = document.createElement('div');
+                    timestampDiv.classList.add('message-timestamp');
+                    timestampDiv.textContent = formatTimestamp(message.timestamp);
+
+                    messageDiv.appendChild(contentDiv);
+                    messageDiv.appendChild(timestampDiv);
+
+                    chatBox.appendChild(messageDiv);
+                  });
+                }
+
+
               }
             })
             //end ==>
@@ -901,7 +1058,7 @@ function calculatePer(db, dateBefore) {
     return percentage.toFixed(2);
   }
 
-  return calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore));
+  return Math.ceil(calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore)));
 }
 
 function formatTimestamp(timestamp) {
@@ -922,4 +1079,16 @@ function isOfferValid(lastDate) {
   offerLastDate.setHours(0, 0, 0, 0);
 
   return today <= offerLastDate ? true : false;
+}
+
+function unlockSection(button) {
+  var lockedSection = button.parentElement.parentElement.parentElement;
+  lockedSection.classList.remove('locked-section');
+  lockedSection.querySelector('.locked-overlay').style.display = 'none';
+}
+
+function lockSection(button) {
+  var lockedSection = button.parentElement.parentElement.parentElement;
+  lockedSection.classList.add('locked-section');
+  lockedSection.querySelector('.locked-overlay').style.display = 'flex';
 }

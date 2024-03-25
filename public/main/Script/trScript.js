@@ -101,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <p class="card-text m-0">End date: ${classEle.end_id}</p>
                         </div>
                         <buttona type="button" id="${classEle.class_id}" class="btn btn-success container-fluid mB-3" data-bs-toggle="modal" data-bs-target="#exampleModal">View Students Details</buttona>
+                        <buttonReport type="button" id="${classEle.class_id}" class="btn btn-warning container-fluid mB-3" data-bs-toggle="modal" data-bs-target="#exampleModalforClassReport">View Full Class Attendance Report</buttonReport>
                         <div class="yellowBorder p-3">
                         <div class="mb-2 p-1 d-flex justify-content-start align-items-start"><h5>My Subjects</h5></div>
                         <div class="row" id="allSubjectsOfTeacher${classEle.class_id}"> <!-- all Subject in this --></div>
@@ -205,6 +206,66 @@ document.addEventListener("DOMContentLoaded", () => {
                                 })
                             }
                         })
+                    } else if (event.target.tagName === "BUTTONREPORT") {
+                        let values = [];
+                        let colorValues = [];
+                        let nameValues = [];
+                        let graphNameValues = [];
+                        data.classes.forEach((classEle) => {
+                            if(classEle.class_id == event.target.id){
+                            classEle.students.forEach((child) => {
+                                // console.log(JSON.parse(child.attendance[0].attendance_data).atData);
+                                // console.log(classEle.start_id);
+                                let [yyyy, mm, dd] = classEle.start_id.split("-");
+                                const repUserDate = `${mm}-${dd}-${yyyy}`;
+                                let calPer = calculatePer(JSON.parse(child.attendance[0].attendance_data).atData, repUserDate);
+                                values.push(calPer);
+                                colorValues.push(getColor(calPer));
+                                graphNameValues.push(calPer + "%");
+                                nameValues.push(child.name);
+                            })
+                        }
+                        })
+
+                        const bodyForReport = document.getElementById("bodyForReport");
+                        bodyForReport.innerHTML = `<canvas id="barChart"></canvas>`;
+                        var ctx = document.getElementById('barChart').getContext('2d');
+                        var myBarChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: nameValues,
+                                datasets: [{
+                                    label: '',
+                                    data: values,
+                                    backgroundColor: colorValues,
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                legend: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Attendance Report'
+                                },
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true,
+                                            max: 100
+                                        }
+                                    }]
+                                },
+                                tooltips: {
+                                    enabled: false // Disable tooltips for all bars
+                                }
+                            }
+                        });
+                        myBarChart.update();
+                        // document.getElementById("barChart").style.height = "10em";
+                        // document.getElementById("barChart").style.width = "auto";
                     }
                 });
 
@@ -229,7 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                         <div id="attendanceCalenderAll" class="row"></div>
                                     </div>`;
                                         generateAttendanceCalendar(dataAttendance, 'attendanceCalenderMain');
-
                                     }
                                 })
                             });
@@ -267,10 +327,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                                 msg = "Rejected";
                                                 cls = "bg-danger";
                                             }
+                                            let dayOrDays = dateDifferenceInDays(ele.from, ele.to) > 1 ? "Days" : "Day";
                                             document.getElementById("listOfLeaveReaquests").innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-start">
                                             <div class="ms-2 me-auto">   
                                             <small>${ele.reason}</small><br/>
-                                            <p>Duration : ${ele.from} - ${ele.to} / ${dateDifferenceInDays(ele.from, ele.to)} Days</p>
+                                            <p>Duration : ${ele.from} - ${ele.to} / ${dateDifferenceInDays(ele.from, ele.to)} ${dayOrDays}</p>
                                             <p style="width: 6rem;" id="${i}-status" class="${cls} rounded d-flex justify-content-center align-items-center mx-2" >${msg}</p>
                                             <small></small>
                                             <div class="d-flex justify-content-start align-items-center">
@@ -779,7 +840,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (commData.length > 0) {
                             commData.forEach((chat) => {
                                 // console.log(data.dataTr.teacher_id);
-                                if (!chat.read && (chat.sender=="student") && (chat.teacher_id==data.dataTr.teacher_id)) {
+                                if (!chat.read && (chat.sender == "student") && (chat.teacher_id == data.dataTr.teacher_id)) {
                                     unread++;
                                 }
                             })
@@ -793,7 +854,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name}</a>`;
                         }
                     });
-                    if(checkUnreadinClass) {
+                    if (checkUnreadinClass) {
                         document.getElementById(`showDotForMessage-${classEle.class_id}`).className = "badge rounded-pill text-bg-warning mx-1";
                         document.getElementById(`showDotForMessage-${classEle.class_id}`).innerHTML = "New Message";
                     }
@@ -801,6 +862,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 document.getElementById("parsec").addEventListener("click", (event) => {
                     if (event.target.tagName == "A") {
+                        let messages = '';
                         const [stuId, btnName] = event.target.id.split("-");
                         // console.log(stuId);
                         document.getElementById("msgHandle").innerHTML = `<input type="text" id="message-input" placeholder="Type your message...">
@@ -810,7 +872,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             try {
                                 const data = {
                                     type: "call",
-                                    student_id: studentId
+                                    student_id: studentId,
+                                    sender: "teacher"
                                 };
 
                                 const response = await fetch('./php/comm/comm.php', {
@@ -837,31 +900,32 @@ document.addEventListener("DOMContentLoaded", () => {
                                 const res = JSON.parse(allComm.commData) ? JSON.parse(allComm.commData).filter(ele => ele.teacher_id == trId) : [];
                                 // console.log(JSON.parse(allComm.commData));
                                 if (allComm.success) {
-                                    const messages = res;
+                                    messages = res;
 
-                                    function displayMessages() {
-                                        const chatBox = document.getElementById('chat-box');
-                                        chatBox.innerHTML = '';
+                                    // function displayMessages() {
+                                    //     const chatBox = document.getElementById('chat-box');
+                                    //     chatBox.innerHTML = '';
 
-                                        messages.slice().reverse().forEach(message => { // Reverse the order of messages before rendering
-                                            const messageDiv = document.createElement('div');
-                                            messageDiv.classList.add('message', message.sender);
+                                    //     messages.slice().reverse().forEach(message => { // Reverse the order of messages before rendering
+                                    //         const messageDiv = document.createElement('div');
+                                    //         messageDiv.classList.add('message', message.sender);
 
-                                            const contentDiv = document.createElement('div');
-                                            contentDiv.classList.add('message-content');
-                                            contentDiv.textContent = message.content;
+                                    //         const contentDiv = document.createElement('div');
+                                    //         contentDiv.classList.add('message-content');
+                                    //         contentDiv.textContent = message.content;
 
-                                            const timestampDiv = document.createElement('div');
-                                            timestampDiv.classList.add('message-timestamp');
-                                            timestampDiv.textContent = formatTimestamp(message.timestamp);
+                                    //         const timestampDiv = document.createElement('div');
+                                    //         timestampDiv.classList.add('message-timestamp');
+                                    //         timestampDiv.textContent = formatTimestamp(message.timestamp);
 
-                                            messageDiv.appendChild(contentDiv);
-                                            messageDiv.appendChild(timestampDiv);
+                                    //         messageDiv.appendChild(contentDiv);
+                                    //         messageDiv.appendChild(timestampDiv);
 
-                                            chatBox.appendChild(messageDiv);
-                                        });
-                                    }
-                                    displayMessages();
+                                    //         chatBox.appendChild(messageDiv);
+                                    //     });
+                                    // }
+
+                                    displayMessages(messages);
                                     document.getElementById("msg-send-button").addEventListener("click", (event) => {
                                         document.getElementById("myElement").style.visibility = "visible";
                                         const messageInput = document.getElementById('message-input');
@@ -892,7 +956,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                             .then(response => response.json())
                                             .then(data => {
                                                 messages.push(newMessage);
-                                                displayMessages();
+                                                displayMessages(messages);
                                                 messageInput.value = '';
                                                 console.log(data);
                                                 document.getElementById("myElement").style.visibility = "hidden";
@@ -911,6 +975,68 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                         fetchComm(stuId);
                         $('#exampleModal-ptc').modal('show');
+
+                        console.log("needed");
+                        console.log(data.dataTr.teacher_id);
+                        console.log(stuId);
+
+                        //live chat check call
+                        function checkForChanges() {
+                            fetch('php/comm/comm.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    type: "check",
+                                    student_id: stuId,
+                                    sender: "teacher",
+                                    teacher: data.dataTr.teacher_id
+                                }),
+                            })
+                                .then(response => response.json())
+                                .then(msgData => {
+                                    // console.log(msgData);
+                                    if (msgData.changed) {
+                                        const allComm = JSON.parse((msgData.message));
+                                        // console.log(allComm, teacherId)
+                                        const res = allComm ? allComm.filter(ele => ele.teacher_id == data.dataTr.teacher_id) : [];
+                                        displayMessages(res);
+                                        messages = res;
+                                    }
+                                    // else {
+                                    //   console.log(msgData.message);
+                                    // }
+                                })
+                                .catch(error => {
+                                    // document.getElementById("myElement").style.visibility = "hidden";
+                                    console.error('Error:', error);
+                                });
+                        }
+                        setInterval(checkForChanges, 2500);
+
+                        function displayMessages(msg) {
+                            const chatBox = document.getElementById('chat-box');
+                            chatBox.innerHTML = '';
+
+                            msg.slice().reverse().forEach(message => { // Reverse the order of messages before rendering
+                                const messageDiv = document.createElement('div');
+                                messageDiv.classList.add('message', message.sender);
+
+                                const contentDiv = document.createElement('div');
+                                contentDiv.classList.add('message-content');
+                                contentDiv.textContent = message.content;
+
+                                const timestampDiv = document.createElement('div');
+                                timestampDiv.classList.add('message-timestamp');
+                                timestampDiv.textContent = formatTimestamp(message.timestamp);
+
+                                messageDiv.appendChild(contentDiv);
+                                messageDiv.appendChild(timestampDiv);
+
+                                chatBox.appendChild(messageDiv);
+                            });
+                        }
                     }
                 })
 
@@ -938,11 +1064,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                         msg = "Rejected";
                                         cls = "bg-danger";
                                     }
+                                    let dayOrDays = dateDifferenceInDays(ele.from, ele.to) > 1 ? "Days" : "Day";
                                     document.getElementById("listOfLeaveReaquests").innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-start">
                                             <div class="ms-2 me-auto">   
                                             <p class="m-0 p-0">Name: ${stuEle.name}</p>
                                             <p class="m-0 p-0">Class: ${stuEle.clss_id}</p>
-                                            <p class="m-0 p-0">Duration : ${ele.from} - ${ele.to} / ${dateDifferenceInDays(ele.from, ele.to)} Days</p>
+                                            <p class="m-0 p-0">Duration : ${ele.from} - ${ele.to} / ${dateDifferenceInDays(ele.from, ele.to)} ${dayOrDays}</p>
                                             <small>Reason: ${ele.reason}</small><br/>
                                             <p style="width: 6rem;" id="${i}-status" class="${cls} rounded d-flex justify-content-center align-items-center m-2" >${msg}</p>
                                             <small></small>
@@ -1177,7 +1304,7 @@ function calculatePer(db, dateBefore) {
         return percentage.toFixed(2);
     }
 
-    return calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore));
+    return Math.ceil(calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore)));
 }
 
 function dateDifferenceInDays(date1, date2) {
@@ -1244,4 +1371,21 @@ function formatTimestamp(timestamp) {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+function getColor(number) {
+    var green = [0, 255, 0]; // RGB values for green
+    var red = [255, 0, 0];   // RGB values for red
+
+    var ratio = (number - 1) / 99; // Adjusting the range to start from 0
+
+    var color = [
+        Math.round((1 - ratio) * red[0] + ratio * green[0]), // Red component
+        Math.round((1 - ratio) * red[1] + ratio * green[1]), // Green component
+        Math.round((1 - ratio) * red[2] + ratio * green[2])  // Blue component
+    ];
+
+    var cssColor = 'rgb(' + color.join(',') + ')';
+
+    return number >= 75 ? 'rgb(0,255,0)' : cssColor;
 }

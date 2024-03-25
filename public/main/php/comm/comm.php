@@ -38,6 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // }
 
         $student_id = $data["student_id"];
+        $sender = $data['sender'];
 
         // Construct SQL query to select the "comm" field from the "student" table based on the provided student ID
         $sql = "SELECT comm FROM student WHERE student_id = ?";
@@ -54,17 +55,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Mark all messages as read
             foreach ($commData as &$message) {
-                $message['read'] = true;
+                if ($message['sender'] != $sender) {
+                    $message['read'] = true;
+                }
             }
 
             // Encode the modified array back to JSON
             $updatedCommData = json_encode($commData);
 
-            // Update the "comm" column in the database with the modified JSON data
+            // (to mark read) !!important
+            // Update the "comm" column in the database with the modified JSON data 
             $updateSql = "UPDATE student SET comm = ? WHERE student_id = ?";
             $updateStmt = $conn->prepare($updateSql);
             $updateStmt->bind_param("si", $updatedCommData, $student_id);
             $updateStmt->execute();
+            $_SESSION['prev_comm'] = $updatedCommData; // Update the session with the latest comm value [storing for comparing]
 
             // Return the updated communication data
             header('Content-Type: application/json');
@@ -108,6 +113,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             echo "No data found for the given student_id";
         }
+    } elseif ($data["type"] == "check" && isset ($data["student_id"])) {
+        $studentId = $data['student_id'];
+        $sender = $data['sender'];
+        $teacher = $data['teacher'];
+
+        $sql = "SELECT comm FROM student WHERE student_id = $studentId";
+        $result = $conn->query($sql);
+
+        if ($result) {
+            $row = $result->fetch_assoc();
+
+            if ($row) {
+                $comm = $row['comm'];
+                session_start();
+                $prevComm = $_SESSION['prev_comm']; // Get the previous comm value from session
+                $_SESSION['prev_comm'] = $comm; // Update the session with the latest comm value
+
+                // Check if the comm value has changed
+                if ($comm !== $prevComm) {
+
+                    $commData = json_decode($row['comm'], true);
+
+                    $isChanged = false;
+                    $ThisTr = false;
+                    foreach ($commData as &$message) {
+                        // echo ($message['sender'] != $sender ? "true" : "false") . "\n";
+                        if ($message['sender'] != $sender) {
+                            if ($message['teacher_id'] == $teacher) {
+                                $message['read'] = true;
+                            }
+                        }
+                    }
+
+
+                    $updatedCommData = json_encode($commData);
+                    $updateSql = "UPDATE student SET comm = ? WHERE student_id = ?";
+                    $updateStmt = $conn->prepare($updateSql);
+                    $updateStmt->bind_param("si", $updatedCommData, $studentId);
+                    $updateStmt->execute();
+                    $_SESSION['prev_comm'] = $updatedCommData; // Update the session with the latest comm value [storing for comparing]
+                    $response = ['changed' => true, 'message' => $updatedCommData];
+                } else {
+                    $response = ['changed' => false, 'message' => 'No message changed'];
+                }
+            } else {
+                $response = ['error' => 'Student ID not found'];
+            }
+        } else {
+            $response = ['error' => 'Error executing query'];
+        }
+
+        // Return the result as JSON
+        header('Content-Type: application/json');
+        echo json_encode($response);
     } else {
         echo "Invalid type or missing parameters";
     }

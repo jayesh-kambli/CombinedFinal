@@ -18,8 +18,10 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
   <script src="./Script/trScript.js"></script>
-  <link href="./Css/style.css" rel="stylesheet"></link>
-  <link href="./Css/teacherStyle.css" rel="stylesheet"></link>
+  <link href="./Css/style.css" rel="stylesheet">
+  </link>
+  <link href="./Css/teacherStyle.css" rel="stylesheet">
+  </link>
 </head>
 
 <body>
@@ -282,7 +284,8 @@
       <div class="mb-3 mx-3 raw2 rounded p-2 accordion" id="parsec"></div>
     </div>
 
-    <div class="modal fade" id="exampleModal-ptc" tabindex="-1" aria-labelledby="exampleModalLabel-ptc" aria-hidden="true">
+    <div class="modal fade" id="exampleModal-ptc" tabindex="-1" aria-labelledby="exampleModalLabel-ptc"
+      aria-hidden="true">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
@@ -297,6 +300,22 @@
               <button id="msg-send-button"><span id="myElement" class="spinner-border spinner-border-sm" aria-hidden="true"></span> Send</button> -->
             </div>
           </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- for class report (modal)-->
+    <div class="modal fade" id="exampleModalforClassReport" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Class Attendance Report</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="bodyForReport"></div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>

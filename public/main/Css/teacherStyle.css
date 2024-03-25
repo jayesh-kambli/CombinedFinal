@@ -185,3 +185,8 @@ table {
   background-color: orange;
   color: black;
 }
+
+canvas {
+  max-width: 600px; /* Set maximum width */
+  max-height: 400px; /* Set maximum height */
+}
