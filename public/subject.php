@@ -50,6 +50,10 @@
             <label for="teacher_id">Teacher <span class="text-danger">*</span></label>
             <select class="form-control" id="teacher_id" name="teacher_id">
               <!-- Teachers will be populated dynamically using AJAX -->
+              <option value="">select teacher</option>
+              <?php
+                echo load_teacher_list($connect);
+              ?>
             </select>
             <span id="error_teacher_id" class="text-danger"></span>
           </div>
@@ -206,6 +210,7 @@ $(document).ready(function(){
       data: { action: 'edit_fetch', subject_id: subject_id },
       dataType: "json",
       success: function(data) {
+        console.log(data);
         $('#name').val(data.name);
         $('#teacher_id').val(data.teacher_id);
         $('#class').val(data.class);
