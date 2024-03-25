@@ -275,6 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById("buttonForParentPassCheck").addEventListener("click", (event) => {
             console.log(document.getElementById("btnGroupAddOnforPar").value, data.student.ppass)
             if (data.student.ppass == document.getElementById("btnGroupAddOnforPar").value) {
+              document.getElementById("btnGroupAddOnforPar").value = "";
               iziToast.success({
                 title: "Unlocked",
                 message: "",
@@ -298,6 +299,9 @@ document.addEventListener("DOMContentLoaded", function () {
           });
 
           document.getElementById("buttonForParentPassUpdate").addEventListener('click', (event) => {
+            validSym("btnGroupAddOnforCurrPass");
+            validSym("btnGroupAddOnforNewPass");
+            validSym("btnGroupAddOnforNewPass2");
             const currPass = document.getElementById("btnGroupAddOnforCurrPass") ? document.getElementById("btnGroupAddOnforCurrPass").value : "";
             const newPass = document.getElementById("btnGroupAddOnforNewPass").value;
             const newPass2 = document.getElementById("btnGroupAddOnforNewPass2").value;
@@ -353,6 +357,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     message: "",
                     position: "topLeft",
                   });
+                  InvalidSym("btnGroupAddOnforCurrPass");
+                  InvalidSym("btnGroupAddOnforNewPass");
+                  InvalidSym("btnGroupAddOnforNewPass2");
                 }
               } else {
                 iziToast.error({
@@ -360,6 +367,8 @@ document.addEventListener("DOMContentLoaded", function () {
                   message: "",
                   position: "topLeft",
                 });
+                InvalidSym("btnGroupAddOnforNewPass");
+                InvalidSym("btnGroupAddOnforNewPass2");
               }
             } else {
               iziToast.error({
@@ -367,6 +376,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 message: "",
                 position: "topLeft",
               });
+              InvalidSym("btnGroupAddOnforCurrPass");
             }
           });
 
@@ -950,6 +960,7 @@ document.addEventListener("DOMContentLoaded", function () {
                           message: data.message,
                           position: "topLeft",
                         });
+                        setLayout();
                       } else {
                         iziToast.error({
                           title: "Failed",
@@ -1091,4 +1102,31 @@ function lockSection(button) {
   var lockedSection = button.parentElement.parentElement.parentElement;
   lockedSection.classList.add('locked-section');
   lockedSection.querySelector('.locked-overlay').style.display = 'flex';
+}
+
+function InvalidSym(id) {
+  if (document.getElementById(id)) {
+    document.getElementById(id).classList.add('is-invalid');
+  }
+}
+
+function validSym(id) {
+  if (document.getElementById(id)) {
+    document.getElementById(id).classList.remove('is-invalid');
+  }
+}
+
+function setLayout() {
+  document.getElementById("modelBodyOfResetParentPass").innerHTML = `<div class="input-group" id="currentPassSection">
+  <div class="input-group-text" style="width: 200px;">Current Password</div>
+  <input type="password" class="form-control" placeholder="old password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforCurrPass">
+</div>
+<div class="input-group mt-2">
+  <div class="input-group-text" style="width: 200px;">New Password*</div>
+  <input type="password" class="form-control" placeholder="new password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforNewPass">
+</div>
+<div class="input-group mt-2">
+  <div class="input-group-text" style="width: 200px;">Confirm Password*</div>
+  <input type="password" class="form-control" placeholder="new password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforNewPass2">
+</div>  `;
 }
