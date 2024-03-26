@@ -45,67 +45,73 @@ if(isset($_POST["action"])) {
     }
 
     if($_POST["action"] == 'Add' || $_POST["action"] == "Edit") {
-        $name = '';
-        $teacher_id = '';
-        $class = '';
+        $name = $_POST["name"];
+        $teacher = $_POST["teacher"];
+        $class = $_POST["class"];
 
         $error_name = '';
-        $error_teacher_id = '';
+        $error_teacher = '';
         $error_class = '';
 
         $error = 0;
 
-        if(empty($_POST["name"])) {
+        if(empty($name)) {
             $error_name = 'Subject Name is required';
             $error++;
-        } else {
-            $name = $_POST["name"];
         }
 
-        if(empty($_POST["teacher_id"])) {
-            $error_teacher_id = 'Teacher is required';
+        if(empty($teacher)) {
+            $error_teacher = 'Teacher is required';
             $error++;
-        } else {
-            $teacher_id = $_POST["teacher_id"];
         }
 
-        if(empty($_POST["class"])) {
+        if(empty($class)) {
             $error_class = 'Class is required';
             $error++;
-        } else {
-            $class = $_POST["class"];
         }
 
-        if($error > 0) {
-            $output = array(
-                'error'             => true,
-                'error_name'=> $error_name,
-                'error_teacher_id'  => $error_teacher_id,
-                'error_class'       => $error_class
-            );
-        } else {
-            $data = array(
-                ':name' => $name,
-                ':teacher_id'   => $teacher_id,
-                ':class'        => $class
-            );
-            
-            if($_POST["action"] == "Add") {
-                $query = "INSERT INTO subject (name, teacher_id, class) VALUES (:name, :teacher_id, :class)";
-            } elseif($_POST["action"] == "Edit") {
-                $query = "UPDATE subject SET name = :name, teacher_id = :teacher_id, class = :class WHERE subject_id = :subject_id";
-                $data[':subject_id'] = $_POST["subject_id"];
-            }
+        // Check if the provided class exists in the class table
+    $check_query = "SELECT COUNT(*) FROM class WHERE class_id = :class_id";
+    $check_statement = $connect->prepare($check_query);
+    $check_statement->bindParam(':class_id', $class, PDO::PARAM_INT);
+    $check_statement->execute();
+    $class_exists = $check_statement->fetchColumn();
 
-            $statement = $connect->prepare($query);
-            if($statement->execute($data)) {
-                $output = array(
-                    'success' => ($_POST["action"] == "Add") ? 'Subject Added Successfully' : 'Subject Updated Successfully'
-                );
-            }
-        }
-        echo json_encode($output);
+    if($class_exists == 0) {
+        $error_class = 'Invalid class selected';
+        $error++;
     }
+
+    if($error > 0) {
+        $output = array(
+            'error'         => true,
+            'error_name'    => $error_name,
+            'error_teacher' => $error_teacher,
+            'error_class'   => $error_class
+        );
+    } else {
+        $data = array(
+            ':name'    => $name,
+            ':teacher' => $teacher,
+            ':class'   => $class
+        );
+        
+        if($_POST["action"] == "Add") {
+            $query = "INSERT INTO subject (name, teacher, class) VALUES (:name, :teacher, :class)";
+        } elseif($_POST["action"] == "Edit") {
+            $query = "UPDATE subject SET name = :name, teacher = :teacher, class = :class WHERE subject_id = :subject_id";
+            $data[':subject_id'] = $_POST["subject_id"];
+        }
+
+        $statement = $connect->prepare($query);
+        if($statement->execute($data)) {
+            $output = array(
+                'success' => ($_POST["action"] == "Add") ? 'Subject Added Successfully' : 'Subject Updated Successfully'
+            );
+        }
+    }
+    echo json_encode($output);
+}
 
     if($_POST["action"] == 'single_fetch') {
         $query = "SELECT * FROM subject WHERE subject_id = '".$_POST["subject_id"]."'";
@@ -147,9 +153,9 @@ if(isset($_POST["action"])) {
             $result = $statement->fetchAll();
             foreach($result as $row) {
                 $output['name'] = $row["name"];
-                $output['teacher_id']   = $row['teacher_id'];
-                $output['class']        = $row['class'];
-                $output['subject_id']   = $row['subject_id'];
+                $output['teacher'] = $row['teacher'];
+                $output['class'] = $row['class'];
+                $output['subject_id'] = $row['subject_id'];
             }
             echo json_encode($output);
         }

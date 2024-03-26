@@ -19,14 +19,21 @@ if (isset ($_POST["action"])) {
         INNER JOIN 
             class ON class.class_id = student.clss_id ";
 
-        if (isset ($_POST["search"]["value"])) {
-            $query .= 'WHERE student.name LIKE "%' . $_POST["search"]["value"] . '%" 
-                OR student.rf_id LIKE "%' . $_POST["search"]["value"] . '%" 
-                OR student.email LIKE "%' . $_POST["search"]["value"] . '%" 
-                OR student.phone_no LIKE "%' . $_POST["search"]["value"] . '%" 
-                OR student.leave_request LIKE "%' . $_POST["search"]["value"] . '%" 
-                OR class.name LIKE "%' . $_POST["search"]["value"] . '%" ';
-        }
+            // Add class filter condition if a class is selected
+ if(!empty($_POST["filter_class"]))
+ {
+     $query .= "WHERE student.clss_id = :filter_class ";
+ }
+
+ if (isset($_POST["search"]["value"]) && $_POST["search"]["value"] != '') {
+    $query .= 'WHERE 
+        (student.name LIKE "%' . $_POST["search"]["value"] . '%" 
+        OR student.rf_id LIKE "%' . $_POST["search"]["value"] . '%" 
+        OR student.email LIKE "%' . $_POST["search"]["value"] . '%" 
+        OR student.phone_no LIKE "%' . $_POST["search"]["value"] . '%" 
+        OR student.leave_request LIKE "%' . $_POST["search"]["value"] . '%" 
+        OR class.name LIKE "%' . $_POST["search"]["value"] . '%") ';
+}
 
         if (isset ($_POST["order"])) {
             $query .= 'ORDER BY ' . $_POST['order']['0']['column'] . ' ' . $_POST['order']['0']['dir'] . ' ';
@@ -37,8 +44,12 @@ if (isset ($_POST["action"])) {
         if ($_POST["length"] != -1) {
             $query .= 'LIMIT ' . $_POST['start'] . ', ' . $_POST['length'];
         }
-
         $statement = $connect->prepare($query);
+        if(!empty($_POST["filter_class"]))
+        {
+            $statement->bindValue(':filter_class', $_POST["filter_class"], PDO::PARAM_INT);
+        }
+        //$statement = $connect->prepare($query);
         $statement->execute();
         $result = $statement->fetchAll();
         $data = array();

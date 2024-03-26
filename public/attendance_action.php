@@ -164,7 +164,8 @@ if(!empty($_POST["filter_class"]))
             $sub_array[] = $row["rf_id"];
             $sub_array[] = $row["class_name"];
             $sub_array[] = get_attendance_percentage($connect, $row["student_id"]);
-            $sub_array[] = '<button type="button" name="report_button" data-student_id="'.$row["student_id"].'" class="btn btn-info btn-sm report_button">Report</button>&nbsp;&nbsp;&nbsp;<button type="button" name="chart_button" data-student_id="'.$row["student_id"].'" class="btn btn-danger btn-sm report_button">Chart</button>';
+            // $sub_array[] = get_attendance_percentage($connect, $row["student_id"]);
+            $sub_array[] = '<button type="button" name="report_button" data-student_id="'.$row["student_id"].'" class="btn btn-info btn-sm report_button">Report</button>';
             $data[] = $sub_array;
         }
 

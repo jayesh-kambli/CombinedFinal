@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         <td>${stuEle.clss_id}</td>
                                         <td>+91 ${stuEle.phone_no}</td>
                                         <td ><a class="link-offset-2 link-underline link-underline-opacity-100 d-flex align-items-center" href="#" id="${stuEle.student_id}-ad" data-bs-toggle="modal" data-bs-target="#staticBackdropMain"><span class="circle ${colorCls} me-1"></span> ${percent}% (view)</a></td>
-                                        <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-lr" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Leave Reaquests</a></td>
+                                        <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-lr" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Leave Requests</a></td>
                                         <!-- <td><a class="link-offset-2 link-underline link-underline-opacity-100" href="#" id="${stuEle.student_id}-ed" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><ion-icon name="create"></ion-icon> Edit</a></td> -->
                                     </tr>`;
                                     }
@@ -1135,7 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     clsEle.students.forEach((stuEle) => {
                         JSON.parse(stuEle.leave_request).requests.forEach((ele, i) => {
                             if (ele.status == 101) {
-                                document.getElementById("newLR").innerHTML = `Reaquests 
+                                document.getElementById("newLR").innerHTML = `Requests 
                             <span class="badge text-bg-warning">NEW</span>`;
                                 return;
                             }

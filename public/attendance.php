@@ -12,7 +12,7 @@ include ('header.php');
       <div class="row">
         <div class="col-md-9">Attendance List</div>
         <div class="col-md-3" align="right">
-          <button type="button" id="chart_button" class="btn btn-primary btn-sm">Chart</button>
+          <!-- <button type="button" id="chart_button" class="btn btn-primary btn-sm">Chart</button> -->
           <button type="button" id="report_button" class="btn btn-danger btn-sm">Report</button>
         </div>
       </div>
@@ -36,7 +36,7 @@ include ('header.php');
               <th>Rf id</th>
               <th>class</th>
               <th>Attendance data</th>
-              <th>Attendance Date</th>
+              <!-- <th>Attendance Date</th> -->
 
             </tr>
           </thead>

@@ -37,7 +37,7 @@ include('header.php');
               <th>class</th>
               <th>Teacher</th>
               <th>Report</th>
-			  <th>Attendance Percentage</th>
+			  <!-- <th>Attendance Percentage</th> -->
             </tr>
           </thead>
           <tbody>

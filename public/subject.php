@@ -48,19 +48,27 @@
           </div>
           <div class="form-group">
             <label for="teacher_id">Teacher <span class="text-danger">*</span></label>
-            <select class="form-control" id="teacher_id" name="teacher_id">
-              <!-- Teachers will be populated dynamically using AJAX -->
-              <option value="">select teacher</option>
-              <?php
-                echo load_teacher_list($connect);
-              ?>
+            <select class="form-control" id="teacher" name="teacher">
+            <option value="">Select Teacher</option>
+                  <?php
+                  echo load_teacher_list($connect);
+                  ?>
             </select>
-            <span id="error_teacher_id" class="text-danger"></span>
+            <span id="error_teacher" class="text-danger"></span>
           </div>
           <div class="form-group">
-            <label for="class">Class <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="class" name="class">
-            <span id="error_class" class="text-danger"></span>
+            <div class="row">
+              <label class="col-md-4 text-right">Class Name <span class="text-danger">*</span></label>
+              <div class="col-md-8">
+                <select name="class" id="class" class="form-control">
+                  <option value="">Select Class Name</option>
+                  <?php
+                  echo load_class_names($connect);
+                  ?>
+                </select>
+                <span id="error_class" class="text-danger"></span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -133,7 +141,7 @@ $(document).ready(function(){
   function clearField() {
     $('#subject_form')[0].reset();
     $('#error_name').text('');
-    $('#error_teacher_id').text('');
+    $('#error_teacher').text('');
     $('#error_class').text('');
   }
 
@@ -171,10 +179,10 @@ $(document).ready(function(){
           } else {
             $('#error_name').text('');
           }
-          if(data.error_teacher_id != '') {
-            $('#error_teacher_id').text(data.error_teacher_id);
+          if(data.error_teacher != '') {
+            $('#error_teacher_').text(data.error_teacher);
           } else {
-            $('#error_teacher_id').text('');
+            $('#error_teacher').text('');
           }
           if(data.error_class != '') {
             $('#error_class').text(data.error_class);
@@ -210,9 +218,8 @@ $(document).ready(function(){
       data: { action: 'edit_fetch', subject_id: subject_id },
       dataType: "json",
       success: function(data) {
-        console.log(data);
         $('#name').val(data.name);
-        $('#teacher_id').val(data.teacher_id);
+        $('#teacher').val(data.teacher); // Corrected the selector
         $('#class').val(data.class);
         $('#subject_id').val(data.subject_id);
         $('#modal_title').text("Edit Subject");

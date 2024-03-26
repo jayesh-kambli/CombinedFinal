@@ -17,6 +17,15 @@ include('header.php');
     <div class="card-body">
       <div class="table-responsive">
         <span id="message_operation"></span>
+         <div class="form-group">
+          <label for="filter_class">Filter by Class:</label>
+          <select name="filter_class" id="filter_class" class="form-control">
+            <option value="">All Classes</option>
+            <?php
+            echo load_class_list($connect); // Assuming load_class_list function is defined elsewhere
+            ?>
+          </select>
+        </div>
         <table class="table table-striped table-bordered" id="student_table">
           <thead>
             <tr>
@@ -213,7 +222,11 @@ include('header.php');
       "ajax": {
         url: "student_action.php",
         type: "POST",
-        data: { action: 'fetch' }
+        data: function (data) {
+          data.action = 'fetch';
+          data.filter_class = $('#filter_class').val(); // Pass the selected class for filtering
+          console.log('Selected Class:', data.filter_class); // Log selected class for debugging
+        }
       },
       "columnDefs": [
         {
@@ -222,6 +235,9 @@ include('header.php');
         },
       ],
 
+    });
+    $('#filter_class').change(function () {
+      dataTable.ajax.reload(); // Reload the DataTable when the class filter changes
     });
 
     //  $('#student_dob').datepicker({
