@@ -5,15 +5,19 @@ $output = array();
 
 if(isset($_POST["action"])) {
     if($_POST["action"] == 'fetch') {
-        $query = "SELECT * FROM subject ";
+        $query = "SELECT subject.*, teacher.name AS teacher_name 
+        FROM subject 
+        LEFT JOIN teacher ON subject.teacher = teacher.teacher_id";
         if(isset($_POST["search"]["value"])) {
-            $query .= 'WHERE name LIKE "%'.$_POST["search"]["value"].'%"';
+            $query .= ' WHERE subject.name LIKE "%' . $_POST["search"]["value"] . '%"
+            OR teacher.name LIKE "%' . $_POST["search"]["value"] . '%"
+';
         }
         if(isset($_POST["order"])) {
             $query .= ' ORDER BY '.$_POST['order']['0']['column'].' '.$_POST['order']['0']['dir'];
         }
         else {
-            $query .= ' ORDER BY subject_id DESC ';
+            $query .= ' ORDER BY subject.subject_id DESC ';
         }
         if($_POST["length"] != -1) {
             $query .= ' LIMIT ' . $_POST['start'] . ', ' . $_POST['length'];
@@ -27,7 +31,7 @@ if(isset($_POST["action"])) {
         foreach($result as $row) {
             $sub_array = array();
             $sub_array[] = $row["name"];
-            $sub_array[] = $row["teacher"]; // Assuming teacher name is fetched along with subject
+            $sub_array[] = $row["teacher_name"]; // Assuming teacher name is fetched along with subject
             $sub_array[] = $row["class"];
             $sub_array[] = '<button type="button" name="view_subject" class="btn btn-info btn-sm view_subject" id="'.$row["subject_id"].'">View</button>';
             $sub_array[] = '<button type="button" name="edit_subject" class="btn btn-primary btn-sm edit_subject" id="'.$row["subject_id"].'">Edit</button>';

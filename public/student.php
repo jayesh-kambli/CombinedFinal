@@ -29,6 +29,7 @@ include('header.php');
         <table class="table table-striped table-bordered" id="student_table">
           <thead>
             <tr>
+              <th>student id</th>
               <th>Student Name</th>
               <th>rf_id</th>
               <th>email</th>
@@ -75,6 +76,16 @@ include('header.php');
 
         <!-- Modal body -->
         <div class="modal-body">
+  <div class="form-group">
+    <div class="row">
+      <label class="col-md-4 text-right">Student ID <span class="text-danger">*</span></label>
+      <div class="col-md-8">
+        <input type="text" name="student_id" id="student_id" class="form-control" />
+        <span id="error_student_id" class="text-danger"></span>
+      </div>
+    </div>
+  </div>
+
           <div class="form-group">
             <div class="row">
               <label class="col-md-4 text-right">Student Name <span class="text-danger">*</span></label>
@@ -138,7 +149,7 @@ include('header.php');
             </div>
           </div>
         </div>
-        <div class="form-group">
+        <!--<div class="form-group">
           <div class="row">
             <label class="col-md-4 text-right">leave request <span class="text-danger">*</span></label>
             <div class="col-md-8">
@@ -146,7 +157,7 @@ include('header.php');
               <span id="error_leave_request" class="text-danger"></span>
             </div>
           </div>
-        </div>
+        </div>-->
 
 
 
@@ -170,7 +181,8 @@ include('header.php');
       <!-- Modal Header -->
       <div class="modal-header">
         <h4 class="modal-title">Delete Confirmation</h4>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        '<button type="button" name="delete_student" class="btn btn-danger btn-sm delete_student" data-id="' . $row["student_id"] . '">Delete</button>'
+
       </div>
 
       <!-- Modal body -->
@@ -248,12 +260,13 @@ include('header.php');
 
     function clear_field() {
       $('#student_form')[0].reset();
+      $('#error_student_id').text('');
       $('#error_name').text('');
       $('#error_rf_id').text('');
       $('#error_email').text('');
       $('#error_password').text('');
       $('#error_phone_no').text('');
-      $('#error_leave_request').text('');
+    //  $('#error_leave_request').text('');
       $('#error_clss_id_id').text('');
     }
 
@@ -263,6 +276,9 @@ include('header.php');
       $('#action').val('Add');
       $('#formModal').modal('show');
       clear_field();
+       // Show email and password fields for adding
+       $('#email').closest('.form-group').show();
+        $('#password').closest('.form-group').show();
     });
 
 
@@ -288,6 +304,12 @@ include('header.php');
             dataTable.ajax.reload();
           }
           if (data.error) {
+            if (data.error_student_id != '') {
+              $('#errort_student.id').text(data.error_student.id);
+            }
+            else {
+              $('#error_student.id').text('');
+            }
             if (data.error_student_name != '') {
               $('#errort_name').text(data.error_name);
             }
@@ -319,12 +341,12 @@ include('header.php');
             else {
               $('#error_phone_no').text('');
             }
-            if (data.error_leave_request != '') {
-              $('#error_leave_request').text(data.error_leave_request);
-            }
-            else {
-              $('#error_leave_request').text('');
-            }
+           // if (data.error_leave_request != '') {
+            //  $('#error_leave_request').text(data.error_leave_request);
+           // }
+            //else {
+            //  $('#error_leave_request').text('');
+           // }
             if (data.error_clss_id != '') {
               $('#error_clss_id').text(data.error_clss_id);
             }
@@ -339,49 +361,53 @@ include('header.php');
     var student_id = '';
 
     $(document).on('click', '.edit_student', function () {
-      student_id = $(this).attr('id');
-      clear_field();
-      $.ajax({
+    var student_id = $(this).data('id');
+    $.ajax({
         url: "student_action.php",
         method: "POST",
         data: { action: 'edit_fetch', student_id: student_id },
         dataType: "json",
         success: function (data) {
-          $('#name').val(data.name);
-          $('#rf_id').val(data.rf_id);
-
-          //$('#teacher_emailid').val(data.teacher_emailid);
-          $('#phone_no').val(data.phone_no);
-          $('#leave_request').val(data.leave_request);
-          //$('#teacher_qualification').val(data.teacher_qualification);
-          //$('#teacher_doj').val(data.teacher_doj);
-          $('#clss_id').val(data.clss_id);
-          $('#student_id').val(data.student_id);
-          $('#modal_title').text("Edit Student");
-          $('#button_action').val('Edit');
-          $('#action').val('Edit');
-          $('#formModal').modal('show');
+            $('#student_id').val(data.student_id);
+            $('#name').val(data.name);
+            $('#rf_id').val(data.rf_id);
+            $('#email').val(data.email);
+            $('#password').val(data.password);
+            $('#phone_no').val(data.phone_no);
+            $('#clss_id').val(data.clss_id);
+            $('#modal_title').text("Edit Student");
+            $('#button_action').val('Edit');
+            $('#action').val('Edit');
+            $('#formModal').modal('show');
+             // Hide email and password fields for editing
+             $('#formModal #email').closest('.form-group').hide();
+            $('#formModal #password').closest('.form-group').hide();
         }
-      });
     });
+});
 
-    $(document).on('click', '.delete_student', function () {
-      student_id = $(this).attr('id');
-      $('#deleteModal').modal('show');
-    });
+$(document).on('click', '.delete_student', function () {
+    var student_id = $(this).data('id'); // Use data('id') to retrieve the student ID
+    $('#deleteModal').modal('show');
 
     $('#ok_button').click(function () {
-      $.ajax({
-        url: "student_action.php",
-        method: "POST",
-        data: { student_id: student_id, action: 'delete' },
-        success: function (data) {
-          $('#message_operation').html('<div class="alert alert-success">' + data + '</div>');
-          $('#deleteModal').modal('hide');
-          dataTable.ajax.reload();
-        }
-      });
+        $.ajax({
+            url: "student_action.php",
+            method: "POST",
+            data: { student_id: student_id, action: 'delete' },
+            success: function (data) {
+                if (data.trim() == 'Data Deleted Successfully') {
+                    $('#message_operation').html('<div class="alert alert-success">' + data + '</div>');
+                    $('#deleteModal').modal('hide');
+                    dataTable.ajax.reload();
+                } else {
+                    // Handle deletion error
+                    $('#message_operation').html('<div class="alert alert-danger">' + data + '</div>');
+                }
+            }
+        });
     });
+});
 
   let scanInitiated = false; // Flag to track if RFID scan has already been initiated
   document.getElementById('startScanButton').addEventListener('click', startRFIDScan);

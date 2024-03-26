@@ -13,7 +13,7 @@ include ('header.php');
         <div class="col-md-9">Attendance List</div>
         <div class="col-md-3" align="right">
           <!-- <button type="button" id="chart_button" class="btn btn-primary btn-sm">Chart</button> -->
-          <button type="button" id="report_button" class="btn btn-danger btn-sm">Report</button>
+          <button type="button" id="report_button" class="btn btn-danger btn-sm" data-bs-toggle='modal' data-bs-target='#ModalForOverAllReport'>Report</button>
         </div>
       </div>
     </div>
@@ -44,6 +44,21 @@ include ('header.php');
 
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- modal for overall report -->
+<div class="modal fade" id="ModalForOverAllReport" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Attendance Reports Of Students</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="ModalForOverAllReportBody"></div>
+      <div class="modal-footer">
       </div>
     </div>
   </div>
@@ -242,7 +257,7 @@ include ('header.php');
                           const parent = Array.from(document.getElementById("attendanceTable").children);
                           console.log(parent);
                           parent.forEach((ele) => {
-                            if(Array.from(ele.children)[1].innerText == rf) {
+                            if (Array.from(ele.children)[1].innerText == rf) {
                               Array.from(ele.children)[3].innerHTML = `<label class="badge badge-success">Present</label>`;
                             }
                           });
@@ -313,6 +328,65 @@ include ('header.php');
     });
   }
 
+  document.getElementById("report_button").addEventListener('click', (event) => {
+    console.log(Array.from(document.getElementById("attendanceTable").children))
+    let values = [];
+    let colorValues = [];
+    let nameValues = [];
+    let graphNameValues = [];
+
+    Array.from(document.getElementById("attendanceTable").children).forEach((ele) => {
+      // console.log(JSON.parse(ele.children[3].children[0].getAttribute("data-att")));
+      // console.log((ele.children[3].children[0].getAttribute("end-id")));
+      let [yyyy, mm, dd] = ele.children[3].children[0].getAttribute("start-id").split("-");
+      const repUserDate = `${mm}-${dd}-${yyyy}`;
+      let calPer = calculatePer(JSON.parse(ele.children[3].children[0].getAttribute("data-att")).atData, repUserDate);
+      values.push(calPer);
+      colorValues.push(getColor(calPer));
+      graphNameValues.push(calPer + "%");
+      nameValues.push(ele.children[3].children[0].getAttribute("stname"));
+    })
+    console.log(values);
+
+    const bodyForReport = document.getElementById("ModalForOverAllReportBody");
+    bodyForReport.innerHTML = `<canvas id="barChart"></canvas>`;
+    var ctx = document.getElementById('barChart').getContext('2d');
+    var myBarChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: nameValues,
+        datasets: [{
+          label: '',
+          data: values,
+          backgroundColor: colorValues,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Attendance Report'
+        },
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              max: 100
+            }
+          }]
+        },
+        tooltips: {
+          enabled: false // Disable tooltips for all bars
+        }
+      }
+    });
+    myBarChart.update();
+  });
+
   // $(document).ready(function onstart() {
   function onstart() {
     callData();
@@ -323,9 +397,9 @@ include ('header.php');
       container: '#formModal modal-body'
     });
 
-    $(document).on('click', '#report_button', function () {
-      $('#reportModal').modal('show');
-    });
+    // $(document).on('click', '#report_button', function () {
+    //   $('#reportModal').modal('show');
+    // });
 
     $('#create_report').click(function () {
       var class_id = $('#class_id').val();
@@ -407,4 +481,76 @@ include ('header.php');
     */
 
   };
+
+  function calculatePer(db, dateBefore) {
+    let total = 0;
+    db.forEach((ele) => {
+        let moye = ele.yearMonth;
+        ele.days.forEach((at, i) => {
+            if (
+                isDateBeforeToday(`${i + 1}-${moye}`) &&
+                at == 1 &&
+                isDateAfter(dateBefore, `${i + 1}-${moye}`)
+            )
+                total += 1;
+        });
+    });
+
+    function isDateBeforeToday(userDateString) {
+        let [dd, mm, yyyy] = userDateString.split("-");
+        const userDate = new Date(`${mm}/${dd}/${yyyy}`);
+        const today = new Date();
+        return userDate < today;
+    }
+
+    function isDateAfter(fixedDate, checkdate) {
+        let [dd, mm, yyyy] = fixedDate.split("-");
+        const userDate1 = new Date(`${mm}/${dd}/${yyyy}`);
+        let [dd1, mm1, yyyy1] = checkdate.split("-");
+        const userDate2 = new Date(`${mm1}/${dd1}/${yyyy1}`);
+        return userDate1 < userDate2;
+    }
+
+    function getTotalDaysExcludingSundays(startDate) {
+        let [dd, mm, yyyy] = startDate.split("-");
+        const start = new Date(`${mm}/${dd}/${yyyy}`);
+        const today = new Date();
+        const timeDifference = today - start;
+        const totalDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        const numberOfSundays = Math.floor((totalDays + start.getDay()) / 7);
+        const result = totalDays - numberOfSundays;
+        return result;
+    }
+
+    function calculatePercentage(score, totalMarks) {
+        if (
+            typeof score !== "number" ||
+            typeof totalMarks !== "number" ||
+            totalMarks <= 0
+        ) {
+            return "Invalid input. Please provide valid numeric values for score and totalMarks.";
+        }
+        const percentage = (score / totalMarks) * 100;
+        return percentage.toFixed(2);
+    }
+
+    return Math.ceil(calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore)));
+}
+
+function getColor(number) {
+    var green = [0, 255, 0]; // RGB values for green
+    var red = [255, 0, 0];   // RGB values for red
+
+    var ratio = (number - 1) / 99; // Adjusting the range to start from 0
+
+    var color = [
+        Math.round((1 - ratio) * red[0] + ratio * green[0]), // Red component
+        Math.round((1 - ratio) * red[1] + ratio * green[1]), // Green component
+        Math.round((1 - ratio) * red[2] + ratio * green[2])  // Blue component
+    ];
+
+    var cssColor = 'rgb(' + color.join(',') + ')';
+
+    return number >= 75 ? 'rgb(0,255,0)' : cssColor;
+}
 </script>
