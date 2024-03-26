@@ -483,58 +483,92 @@ include ('header.php');
   };
 
   function calculatePer(db, dateBefore) {
-    let total = 0;
-    db.forEach((ele) => {
-        let moye = ele.yearMonth;
-        ele.days.forEach((at, i) => {
-            if (
-                isDateBeforeToday(`${i + 1}-${moye}`) &&
-                at == 1 &&
-                isDateAfter(dateBefore, `${i + 1}-${moye}`)
-            )
-                total += 1;
-        });
-    });
-
-    function isDateBeforeToday(userDateString) {
-        let [dd, mm, yyyy] = userDateString.split("-");
-        const userDate = new Date(`${mm}/${dd}/${yyyy}`);
-        const today = new Date();
-        return userDate < today;
-    }
-
-    function isDateAfter(fixedDate, checkdate) {
-        let [dd, mm, yyyy] = fixedDate.split("-");
-        const userDate1 = new Date(`${mm}/${dd}/${yyyy}`);
-        let [dd1, mm1, yyyy1] = checkdate.split("-");
-        const userDate2 = new Date(`${mm1}/${dd1}/${yyyy1}`);
-        return userDate1 < userDate2;
-    }
-
-    function getTotalDaysExcludingSundays(startDate) {
-        let [dd, mm, yyyy] = startDate.split("-");
-        const start = new Date(`${mm}/${dd}/${yyyy}`);
-        const today = new Date();
-        const timeDifference = today - start;
-        const totalDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-        const numberOfSundays = Math.floor((totalDays + start.getDay()) / 7);
-        const result = totalDays - numberOfSundays;
-        return result;
-    }
-
-    function calculatePercentage(score, totalMarks) {
-        if (
-            typeof score !== "number" ||
-            typeof totalMarks !== "number" ||
-            totalMarks <= 0
-        ) {
-            return "Invalid input. Please provide valid numeric values for score and totalMarks.";
+  let total = 0;
+  let countSuns = 0;
+  let detector;
+  db.forEach((ele) => {
+    let moye = ele.yearMonth;
+    ele.days.forEach((at, i) => {
+      if (isDateBeforeToday(`${i + 1}-${moye}`) && at == 1 && isDateAfter(dateBefore, `${i + 1}-${moye}`)) {
+        total += 1;
+        if (detector != ele.yearMonth) {
+          countSuns += countSundays(ele.yearMonth);
+          detector = ele.yearMonth;
         }
-        const percentage = (score / totalMarks) * 100;
-        return percentage.toFixed(2);
+      }
+    });
+  });
+  countSuns-=remainingSundaysInMonth();
+  total -= countSuns;
+
+  function remainingSundaysInMonth() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const currentDay = today.getDate();
+    let count = 0;
+
+    // Check remaining days in the month starting from today
+    for (let day = currentDay; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
     }
 
-    return Math.ceil(calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore)));
+    return count;
+  }
+
+  function countSundays(inputDate) {
+    const [month, year] = inputDate.split("-").map(Number);
+    let count = 0;
+    for (let day = 1; day <= 31; day++) {
+      const date = new Date(year, month - 1, day); // Months are 0-based in JavaScript
+      if (date.getMonth() !== month - 1) break; // Check if we've moved to the next month
+      if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
+    }
+    return count;
+  }
+
+  function isDateBeforeToday(userDateString) {
+    let [dd, mm, yyyy] = userDateString.split("-");
+    const userDate = new Date(`${mm}/${dd}/${yyyy}`);
+    const today = new Date();
+    return userDate < today;
+  }
+
+  function isDateAfter(fixedDate, checkdate) {
+    let [dd, mm, yyyy] = fixedDate.split("-");
+    const userDate1 = new Date(`${mm}/${dd}/${yyyy}`);
+    let [dd1, mm1, yyyy1] = checkdate.split("-");
+    const userDate2 = new Date(`${mm1}/${dd1}/${yyyy1}`);
+    return userDate1 < userDate2;
+  }
+
+  function getTotalDaysExcludingSundays(startDate) {
+    let [dd, mm, yyyy] = startDate.split("-");
+    const start = new Date(`${mm}/${dd}/${yyyy}`);
+    const today = new Date();
+    const timeDifference = today - start;
+    const totalDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+    const numberOfSundays = Math.floor((totalDays + start.getDay()) / 7);
+    const result = totalDays - numberOfSundays;
+    console.log(result);
+    return result;
+  }
+
+  function calculatePercentage(score, totalMarks) {
+    if (
+      typeof score !== "number" ||
+      typeof totalMarks !== "number" ||
+      totalMarks <= 0
+    ) {
+      return "Invalid input. Please provide valid numeric values for score and totalMarks.";
+    }
+    const percentage = (score / totalMarks) * 100;
+    return percentage.toFixed(2);
+  }
+
+  return Math.ceil(calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore)));
 }
 
 function getColor(number) {

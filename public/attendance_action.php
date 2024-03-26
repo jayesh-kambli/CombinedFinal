@@ -80,11 +80,13 @@ if (isset ($_POST["action"])) {
         foreach ($result as $row) {
             $sub_array = array();
             $status = (checkAttendance(json_decode($row["attendance_data"], true), $todayDate) == "Present") ? "<label class='badge badge-success' stName='".$row["student_name"]."' start-id='".$row["class_start_id"]."' data-att='" . $row["attendance_data"] . "'>Present</label>" : "<label class='badge badge-danger' stName='".$row["student_name"]."' start-id='".$row["class_start_id"]."' data-att='" . $row["attendance_data"] . "'>Absent</label>";
+            // $status = checkAttendance(json_decode($row["attendance_data"], true), $todayDate);
             $sub_array[] = $row["student_name"];
             $sub_array[] = $row["rf_id"];
             $sub_array[] = $row["class_name"];
             $sub_array[] = $status;
-            $sub_array[] = $row["attendance_date_time"];
+            // $sub_array[] = $row["attendance_date_time"];
+            $sub_array[] = date('d-m-y H:m');
             $data[] = $sub_array;
         }
 
@@ -202,10 +204,11 @@ function checkAttendance($data, $date)
     foreach ($data['atData'] as $record) {
         if ($record['yearMonth'] == $monthYear) {
             // $dayIndex = (int)date('d', strtotime($date)) - 1;
-            $dayIndex = date('d') - 1;
+            $dayIndex = date('d');
             if (isset ($record['days'][$dayIndex])) {
                 if ($record['days'][$dayIndex] == 1) {
                     return "Present";
+                    // return "Present".date('d-m-y H:s');
                 } elseif ($record['days'][$dayIndex] == 0) {
                     return "Absent";
                 } elseif ($record['days'][$dayIndex] == 2) {

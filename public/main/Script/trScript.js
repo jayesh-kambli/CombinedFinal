@@ -86,22 +86,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 const parent = document.getElementById("accordionExampleForTeachers");
                 parent.innerHTML = ``;
                 data.classes.forEach((classEle) => {
+                    let htmlOfIncharge = ``;
+                    let inchargeBadge = ``;
+                    if (classEle.incharge == "yes") {
+                        htmlOfIncharge = `<div class="yellowBorder d-flex flex-column justify-content-start align-items-start p-3 mb-3">
+                                <p class="card-text m-0">Class Id : ${classEle.class_id}</p>
+                                <p class="card-text m-0">Start date: ${classEle.start_id}</p>
+                                <p class="card-text m-0">End date: ${classEle.end_id}</p>
+                            </div>
+                            <buttona type="button" id="${classEle.class_id}" class="btn btn-success container-fluid mB-3" data-bs-toggle="modal" data-bs-target="#exampleModal">View Students Details</buttona>
+                            <buttonReport type="button" id="${classEle.class_id}" class="btn btn-warning container-fluid mB-3" data-bs-toggle="modal" data-bs-target="#exampleModalforClassReport">View Full Class Attendance Report</buttonReport>`;
+                        inchargeBadge = ` <span class="badge text-bg-primary mx-2">Incharge</span>`;
+                    }
                     parent.innerHTML += `<div class="accordion-item">
                         <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" style="width: 100%;"
                         data-bs-target="#collapse${classEle.class_id}" aria-expanded="false" aria-controls="collapse${classEle.class_id}">
-                        ${classEle.name}
+                        ${classEle.name} ${inchargeBadge}
                         </button>
                         </h2>
                         <div id="collapse${classEle.class_id}" class="accordion-collapse collapse" data-bs-parent="#accordionExampleForTeachers">
                         <div class="accordion-body">
-                        <div class="yellowBorder d-flex flex-column justify-content-start align-items-start p-3 mb-3">
-                            <p class="card-text m-0">Class Id : ${classEle.class_id}</p>
-                            <p class="card-text m-0">Start date: ${classEle.start_id}</p>
-                            <p class="card-text m-0">End date: ${classEle.end_id}</p>
-                        </div>
-                        <buttona type="button" id="${classEle.class_id}" class="btn btn-success container-fluid mB-3" data-bs-toggle="modal" data-bs-target="#exampleModal">View Students Details</buttona>
-                        <buttonReport type="button" id="${classEle.class_id}" class="btn btn-warning container-fluid mB-3" data-bs-toggle="modal" data-bs-target="#exampleModalforClassReport">View Full Class Attendance Report</buttonReport>
+                        ${htmlOfIncharge}
+                        
                         <div class="yellowBorder p-3">
                         <div class="mb-2 p-1 d-flex justify-content-start align-items-start"><h5>My Subjects</h5></div>
                         <div class="row" id="allSubjectsOfTeacher${classEle.class_id}"> <!-- all Subject in this --></div>
@@ -818,7 +825,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const parentSec = document.getElementById("parsec");
                 parentSec.innerHTML = ``;
                 data.classes.forEach((classEle) => {
-                    parentSec.innerHTML += `<div class="accordion-item">
+                    if (classEle.incharge == "yes") {
+                        parentSec.innerHTML += `<div class="accordion-item">
                     <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" style="width: 100%;"
                     data-bs-target="#collapse-${classEle.class_id}" aria-expanded="false"
@@ -832,31 +840,32 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     </div>
                     </div>`;
-                    let checkUnreadinClass = false;
-                    classEle.students.forEach((stuEle) => {
-                        let unread = 0;
-                        let notiHtml;
-                        const commData = JSON.parse(stuEle.comm);
-                        if (commData.length > 0) {
-                            commData.forEach((chat) => {
-                                // console.log(data.dataTr.teacher_id);
-                                if (!chat.read && (chat.sender == "student") && (chat.teacher_id == data.dataTr.teacher_id)) {
-                                    unread++;
-                                }
-                            })
-                            notiHtml = unread > 0 ? notiHtml = `<span class="badge rounded-pill text-bg-warning">${unread} New Message</span>` : "";
-                        }
+                        let checkUnreadinClass = false;
+                        classEle.students.forEach((stuEle) => {
+                            let unread = 0;
+                            let notiHtml;
+                            const commData = JSON.parse(stuEle.comm);
+                            if (commData.length > 0) {
+                                commData.forEach((chat) => {
+                                    // console.log(data.dataTr.teacher_id);
+                                    if (!chat.read && (chat.sender == "student") && (chat.teacher_id == data.dataTr.teacher_id)) {
+                                        unread++;
+                                    }
+                                })
+                                notiHtml = unread > 0 ? notiHtml = `<span class="badge rounded-pill text-bg-warning">${unread} New Message</span>` : "";
+                            }
 
-                        if (notiHtml) {
-                            checkUnreadinClass = true;
-                            document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name} ${notiHtml}</a>`;
-                        } else {
-                            document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name}</a>`;
+                            if (notiHtml) {
+                                checkUnreadinClass = true;
+                                document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name} ${notiHtml}</a>`;
+                            } else {
+                                document.getElementById(`stuData-${classEle.class_id}`).innerHTML += `<a href="#" id="${stuEle.student_id}-inlist" class="list-group-item list-group-item-action">${stuEle.name}</a>`;
+                            }
+                        });
+                        if (checkUnreadinClass) {
+                            document.getElementById(`showDotForMessage-${classEle.class_id}`).className = "badge rounded-pill text-bg-warning mx-1";
+                            document.getElementById(`showDotForMessage-${classEle.class_id}`).innerHTML = "New Message";
                         }
-                    });
-                    if (checkUnreadinClass) {
-                        document.getElementById(`showDotForMessage-${classEle.class_id}`).className = "badge rounded-pill text-bg-warning mx-1";
-                        document.getElementById(`showDotForMessage-${classEle.class_id}`).innerHTML = "New Message";
                     }
                 });
 
@@ -1254,17 +1263,50 @@ function getMonthName(monthIndex) {
 
 function calculatePer(db, dateBefore) {
     let total = 0;
+    let countSuns = 0;
+    let detector;
     db.forEach((ele) => {
         let moye = ele.yearMonth;
         ele.days.forEach((at, i) => {
-            if (
-                isDateBeforeToday(`${i + 1}-${moye}`) &&
-                at == 1 &&
-                isDateAfter(dateBefore, `${i + 1}-${moye}`)
-            )
+            if (isDateBeforeToday(`${i + 1}-${moye}`) && at == 1 && isDateAfter(dateBefore, `${i + 1}-${moye}`)) {
                 total += 1;
+                if (detector != ele.yearMonth) {
+                    countSuns += countSundays(ele.yearMonth);
+                    detector = ele.yearMonth;
+                }
+            }
         });
     });
+    countSuns -= remainingSundaysInMonth();
+    total -= countSuns;
+
+    function remainingSundaysInMonth() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const currentDay = today.getDate();
+        let count = 0;
+
+        // Check remaining days in the month starting from today
+        for (let day = currentDay; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
+        }
+
+        return count;
+    }
+
+    function countSundays(inputDate) {
+        const [month, year] = inputDate.split("-").map(Number);
+        let count = 0;
+        for (let day = 1; day <= 31; day++) {
+            const date = new Date(year, month - 1, day); // Months are 0-based in JavaScript
+            if (date.getMonth() !== month - 1) break; // Check if we've moved to the next month
+            if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
+        }
+        return count;
+    }
 
     function isDateBeforeToday(userDateString) {
         let [dd, mm, yyyy] = userDateString.split("-");
@@ -1289,6 +1331,7 @@ function calculatePer(db, dateBefore) {
         const totalDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
         const numberOfSundays = Math.floor((totalDays + start.getDay()) / 7);
         const result = totalDays - numberOfSundays;
+        console.log(result);
         return result;
     }
 

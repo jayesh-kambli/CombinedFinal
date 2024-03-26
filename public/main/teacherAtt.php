@@ -80,7 +80,7 @@ session_start();
                 <th>Rf id</th>
                 <th>class</th>
                 <th>Attendance data</th>
-                <th>Attendance Date</th>
+                <!-- <th>Attendance Date</th> -->
 
               </tr>
             </thead>

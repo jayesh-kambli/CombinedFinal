@@ -46,8 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $subjectsResponse[] = $subjectData;
         }
 
-        // Command to get classes related to the teacher
+        // Command to get classes related to the teacher (as teacher in charge)
         $classQuery = "SELECT * FROM class WHERE teacher='$teacherId'";
+
+        // Command to get classes related to the teacher (based on subjects taught)
+        $subjectIds = array(); // Store subject IDs taught by the teacher
+        foreach ($subjectsResponse as $subject) {
+            $subjectIds[] = $subject['subject_id'];
+        }
+        $subjectIdsString = implode(',', $subjectIds);
+        $classQuery .= " OR class_id IN (SELECT class FROM subject WHERE subject_id IN ($subjectIdsString))";
+
         $classResult = mysqli_query($db, $classQuery);
 
         // Response array for classes
@@ -55,6 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         while ($classData = mysqli_fetch_assoc($classResult)) {
             $classId = $classData['class_id'];
+
+            // Check if teacher is in charge of the class
+            $isInCharge = ($classData['teacher'] == $teacherId) ? "yes" : "no";
+            $classData['incharge'] = $isInCharge;
 
             // Command to get students related to the class
             $studentQuery = "SELECT * FROM student WHERE clss_id='$classId'";
@@ -108,9 +121,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode($finalResponse);
     } else {
         header('Content-Type: application/json');
-        echo json_encode(array('success' => false, 'message' => 'Failed To Access Data'));
+        echo json_encode(array('success' => false, 'message' => 'Not Post'));
     }
 }
-
-$db->close();
-?>

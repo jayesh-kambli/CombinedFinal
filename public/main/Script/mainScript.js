@@ -201,59 +201,65 @@ document.addEventListener("DOMContentLoaded", function () {
           let parent = document.getElementById("ablist");
           parent.innerHTML = "";
           atData.forEach((ele) => {
-            // console.log(ele);
+            let dateOfToday = ele.yearMonth; //as per data
+            // console.log(ele.yearMonth);
+
             ele["days"].forEach((elem, i) => {
-              //start =====
-              if (
-                leaveReqData &&
-                leaveReqData.requests &&
-                Array.isArray(leaveReqData.requests)
-              ) {
-                // console.log(leaveReqData.requests);
-                // leaveReqData.requests.forEach((request) => {
-                // });
-                const givenDate = `${i + 1}-${ele.yearMonth}`; // Format: "dd-MM-yyyy"
-                const [status, isDatePresent] = getStatusForDate(
-                  givenDate,
-                  leaveReqData.requests
-                );
-                if (isDatePresent) {
-                  var clsNm =
-                    status == 101
-                      ? "bg-warning"
-                      : status == 102
-                        ? "bg-danger"
-                        : "bg-success";
-                  var msg =
-                    status == 101
-                      ? "Request Pending"
-                      : status == 102
-                        ? "Requested But Rejected"
-                        : "Requested And Approved";
-                } else {
-                  var clsNm = "bg-info";
-                  var msg = "Not Requested";
-                }
-                //subcode =====
-                if (elem == 0) {
-                  let diffDays = getDaysDifference(`${i + 1}-${ele.yearMonth}`);
-                  parent.innerHTML += `<a href="#" class="list-group-item list-group-item-action">
+              // start =====
+              // console.log(`${i+1}-`+dateOfToday);
+              if (isDateBeforeToday(`${i+1}-`+dateOfToday)) {
+                if (leaveReqData && leaveReqData.requests && Array.isArray(leaveReqData.requests)) {
+                  // console.log(leaveReqData.requests);
+                  // leaveReqData.requests.forEach((request) => {
+                  // });
+                  const givenDate = `${i + 1}-${ele.yearMonth}`; // Format: "dd-MM-yyyy"
+                  const [status, isDatePresent] = getStatusForDate(
+                    givenDate,
+                    leaveReqData.requests
+                  );
+                  if (isDatePresent) {
+                    var clsNm =
+                      status == 101
+                        ? "bg-warning"
+                        : status == 102
+                          ? "bg-danger"
+                          : "bg-success";
+                    var msg =
+                      status == 101
+                        ? "Request Pending"
+                        : status == 102
+                          ? "Requested But Rejected"
+                          : "Requested And Approved";
+                  } else {
+                    var clsNm = "bg-info";
+                    var msg = "Not Requested";
+                  }
+                  //subcode =====
+                  if (elem == 0) {
+                    let diffDays = getDaysDifference(`${i + 1}-${ele.yearMonth}`);
+                    parent.innerHTML += `<a href="#" class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between">
                           <h5 class="mb-1">Date : ${i + 1}-${ele.yearMonth}</h5>
                           <small class="text-body-secondary">${diffDays} ${diffDays > 1 ? "Days" : "Day"
-                    } ago</small>
+                      } ago</small>
                         </div>
                         <small class="${clsNm} p-1 rounded">${msg}</small>
                       </a>`;
+                  }
+                  //subcode =====
+                } else {
+                  console.error("Invalid leave request data format");
                 }
-                //subcode =====
-              } else {
-                console.error("Invalid leave request data format");
               }
               //end =====
-              // console.log(i+1 + "-" + ele.yearMonth+ "==>" +elem + "==>" + ele["times"][i]);
             });
           });
+          let sortedAbsentList = "";
+          Array.from(document.getElementById("ablist").children).reverse().forEach((ele) => {
+            sortedAbsentList+=`<a href="#" class="list-group-item list-group-item-action">`+ele.innerHTML+`</a>`;
+            // console.log(ele.innerHTML);
+          })
+          document.getElementById("ablist").innerHTML = sortedAbsentList;
           //absents end ====>
 
           //profile
@@ -1019,17 +1025,50 @@ function validateCalender(calId) {
 
 function calculatePer(db, dateBefore) {
   let total = 0;
+  let countSuns = 0;
+  let detector;
   db.forEach((ele) => {
     let moye = ele.yearMonth;
     ele.days.forEach((at, i) => {
-      if (
-        isDateBeforeToday(`${i + 1}-${moye}`) &&
-        at == 1 &&
-        isDateAfter(dateBefore, `${i + 1}-${moye}`)
-      )
+      if (isDateBeforeToday(`${i + 1}-${moye}`) && at == 1 && isDateAfter(dateBefore, `${i + 1}-${moye}`)) {
         total += 1;
+        if (detector != ele.yearMonth) {
+          countSuns += countSundays(ele.yearMonth);
+          detector = ele.yearMonth;
+        }
+      }
     });
   });
+  countSuns -= remainingSundaysInMonth();
+  total -= countSuns;
+
+  function remainingSundaysInMonth() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const currentDay = today.getDate();
+    let count = 0;
+
+    // Check remaining days in the month starting from today
+    for (let day = currentDay; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
+    }
+
+    return count;
+  }
+
+  function countSundays(inputDate) {
+    const [month, year] = inputDate.split("-").map(Number);
+    let count = 0;
+    for (let day = 1; day <= 31; day++) {
+      const date = new Date(year, month - 1, day); // Months are 0-based in JavaScript
+      if (date.getMonth() !== month - 1) break; // Check if we've moved to the next month
+      if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
+    }
+    return count;
+  }
 
   function isDateBeforeToday(userDateString) {
     let [dd, mm, yyyy] = userDateString.split("-");
@@ -1054,6 +1093,7 @@ function calculatePer(db, dateBefore) {
     const totalDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
     const numberOfSundays = Math.floor((totalDays + start.getDay()) / 7);
     const result = totalDays - numberOfSundays;
+    console.log(result);
     return result;
   }
 
@@ -1129,4 +1169,13 @@ function setLayout() {
   <div class="input-group-text" style="width: 200px;">Confirm Password*</div>
   <input type="password" class="form-control" placeholder="new password" aria-label="Input group example" aria-describedby="btnGroupAddon" id="btnGroupAddOnforNewPass2">
 </div>  `;
+}
+
+function isDateBeforeToday(dateString) {
+  const [day, month, year] = dateString.split("-").map(Number);
+  const today = new Date();
+  const providedDate = new Date(year, month - 1, day);
+  today.setHours(0, 0, 0, 0);
+  providedDate.setHours(0, 0, 0, 0);
+  return providedDate < today;
 }
