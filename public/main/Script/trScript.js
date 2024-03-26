@@ -212,19 +212,19 @@ document.addEventListener("DOMContentLoaded", () => {
                         let nameValues = [];
                         let graphNameValues = [];
                         data.classes.forEach((classEle) => {
-                            if(classEle.class_id == event.target.id){
-                            classEle.students.forEach((child) => {
-                                // console.log(JSON.parse(child.attendance[0].attendance_data).atData);
-                                // console.log(classEle.start_id);
-                                let [yyyy, mm, dd] = classEle.start_id.split("-");
-                                const repUserDate = `${mm}-${dd}-${yyyy}`;
-                                let calPer = calculatePer(JSON.parse(child.attendance[0].attendance_data).atData, repUserDate);
-                                values.push(calPer);
-                                colorValues.push(getColor(calPer));
-                                graphNameValues.push(calPer + "%");
-                                nameValues.push(child.name);
-                            })
-                        }
+                            if (classEle.class_id == event.target.id) {
+                                classEle.students.forEach((child) => {
+                                    // console.log(JSON.parse(child.attendance[0].attendance_data).atData);
+                                    // console.log(classEle.start_id);
+                                    let [yyyy, mm, dd] = classEle.start_id.split("-");
+                                    const repUserDate = `${mm}-${dd}-${yyyy}`;
+                                    let calPer = calculatePer(JSON.parse(child.attendance[0].attendance_data).atData, repUserDate);
+                                    values.push(calPer);
+                                    colorValues.push(getColor(calPer));
+                                    graphNameValues.push(calPer + "%");
+                                    nameValues.push(child.name);
+                                })
+                            }
                         })
 
                         const bodyForReport = document.getElementById("bodyForReport");
@@ -944,7 +944,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                             "newMessage": newMessage
                                         };
 
-                                        console.log(msgdata);
+                                        // console.log(msgdata);
 
                                         fetch('php/comm/comm.php', {
                                             method: 'POST',
@@ -958,7 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                                 messages.push(newMessage);
                                                 displayMessages(messages);
                                                 messageInput.value = '';
-                                                console.log(data);
+                                                // console.log(data);
                                                 document.getElementById("myElement").style.visibility = "hidden";
                                             })
                                             .catch(error => {
@@ -976,9 +976,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         fetchComm(stuId);
                         $('#exampleModal-ptc').modal('show');
 
-                        console.log("needed");
-                        console.log(data.dataTr.teacher_id);
-                        console.log(stuId);
+                        // console.log("needed");
+                        // console.log(data.dataTr.teacher_id);
+                        // console.log(stuId);
 
                         //live chat check call
                         function checkForChanges() {
@@ -1003,10 +1003,10 @@ document.addEventListener("DOMContentLoaded", () => {
                                         const res = allComm ? allComm.filter(ele => ele.teacher_id == data.dataTr.teacher_id) : [];
                                         displayMessages(res);
                                         messages = res;
+                                        console.log(msgData);
+                                    } else {
+                                        console.log(msgData);
                                     }
-                                    // else {
-                                    //   console.log(msgData.message);
-                                    // }
                                 })
                                 .catch(error => {
                                     // document.getElementById("myElement").style.visibility = "hidden";

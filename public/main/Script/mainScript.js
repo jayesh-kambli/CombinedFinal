@@ -478,7 +478,7 @@ document.addEventListener("DOMContentLoaded", function () {
                           "newMessage": newMessage
                         };
 
-                        console.log(msgdata);
+                        // console.log(msgdata);
 
                         fetch('php/comm/comm.php', {
                           method: 'POST',
@@ -492,7 +492,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             messages.push(newMessage);
                             displayMessages(messages);
                             messageInput.value = '';
-                            console.log(data);
+                            // console.log(data);
                             document.getElementById("myElement").style.visibility = "hidden";
                           })
                           .catch(error => {
@@ -519,7 +519,7 @@ document.addEventListener("DOMContentLoaded", function () {
                       'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                      type: "check",
+                      type: "checkStu",
                       student_id: data.student.student_id,
                       sender: "student",
                       teacher: teacherId
@@ -534,10 +534,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         const res = allComm ? allComm.filter(ele => ele.teacher_id == teacherId) : [];
                         displayMessages(res);
                         messages = res;
+                        console.log(msgData);
+                      } else {
+                        console.log(msgData);
                       }
-                      // else {
-                      //   console.log(msgData.message);
-                      // }
                     })
                     .catch(error => {
                       // document.getElementById("myElement").style.visibility = "hidden";

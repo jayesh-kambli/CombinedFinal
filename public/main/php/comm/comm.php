@@ -167,6 +167,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Return the result as JSON
         header('Content-Type: application/json');
         echo json_encode($response);
+    } elseif ($data["type"] == "checkStu" && isset ($data["student_id"])) {
+        $studentId = $data['student_id'];
+        $sender = $data['sender'];
+        $teacher = $data['teacher'];
+
+        $sql = "SELECT comm FROM student WHERE student_id = $studentId";
+        $result = $conn->query($sql);
+
+        if ($result) {
+            $row = $result->fetch_assoc();
+
+            if ($row) {
+                $comm = $row['comm'];
+                session_start();
+                $prevComm = $_SESSION['prev_commStud']; // Get the previous comm value from session
+                $_SESSION['prev_commStud'] = $comm; // Update the session with the latest comm value
+
+                // Check if the comm value has changed
+                if ($comm !== $prevComm) {
+
+                    $commData = json_decode($row['comm'], true);
+
+                    $isChanged = false;
+                    $ThisTr = false;
+                    foreach ($commData as &$message) {
+                        // echo ($message['sender'] != $sender ? "true" : "false") . "\n";
+                        if ($message['sender'] != $sender) {
+                            if ($message['teacher_id'] == $teacher) {
+                                $message['read'] = true;
+                            }
+                        }
+                    }
+
+
+                    $updatedCommData = json_encode($commData);
+                    $updateSql = "UPDATE student SET comm = ? WHERE student_id = ?";
+                    $updateStmt = $conn->prepare($updateSql);
+                    $updateStmt->bind_param("si", $updatedCommData, $studentId);
+                    $updateStmt->execute();
+                    $_SESSION['prev_commStud'] = $updatedCommData; // Update the session with the latest comm value [storing for comparing]
+                    $response = ['changed' => true, 'message' => $updatedCommData];
+                } else {
+                    $response = ['changed' => false, 'message' => 'No message changed'];
+                }
+            } else {
+                $response = ['error' => 'Student ID not found'];
+            }
+        } else {
+            $response = ['error' => 'Error executing query'];
+        }
+
+        // Return the result as JSON
+        header('Content-Type: application/json');
+        echo json_encode($response);
     } else {
         echo "Invalid type or missing parameters";
     }
