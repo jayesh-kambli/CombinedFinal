@@ -1,3 +1,5 @@
+// const { type } = require("express/lib/response");
+
 sessionStorage.clear();
 localStorage.clear();
 document.addEventListener("DOMContentLoaded", function () {
@@ -63,4 +65,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error('Error:', error);
             });
     });
+
+    let show = false;
+    document.getElementById("showPass").addEventListener('click', (event) => {
+        if(show) {
+            document.getElementById("password").setAttribute("type","password");
+            show=false;
+        } else {
+            document.getElementById("password").setAttribute("type","text");
+            show=true;
+        }
+    })
 });
