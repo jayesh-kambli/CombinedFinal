@@ -1177,6 +1177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function generateAttendanceCalendar(data, parentElement) {
     for (const calendarData of data.atData) {
+        let dateDetection = calendarData.yearMonth;
         const [mm, yyyy] = calendarData.yearMonth.split("-");
         let date = new Date(`${yyyy}-${mm}-01`);
         let currentMonth = date.getMonth();
@@ -1221,20 +1222,26 @@ function generateAttendanceCalendar(data, parentElement) {
 
                     // Check attendance for the day and apply appropriate class
                     const attendance = calendarData.days[dayOfMonth - 1];
-                    if (attendance === 1) {
-                        cell.classList.add('present');
-                        tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
-                    } else if (attendance === 0) {
-                        cell.classList.add('absent');
-                        tooltip.textContent = 'Absent';
-                    } else if (attendance === 2) {
+                    if (isDateBeforeToday(`${dayOfMonth}-` + dateDetection)) {
+                        if (attendance === 1) {
+                            cell.classList.add('present');
+                            tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
+                        } else if (attendance === 0) {
+                            cell.classList.add('absent');
+                            tooltip.textContent = 'Absent';
+                        } else if (attendance === 2) {
+                            cell.classList.add('yellow');
+                            tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
+                        }
+                    } else {
                         cell.classList.add('yellow');
-                        tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
+                        tooltip.textContent = "Not recorded";
                     }
 
                     // Check if it's Sunday and apply the 'sunday' class
                     if (i === 0 && attendance !== 2) {
                         cell.classList.add('sunday');
+                        tooltip.textContent = "sunday";
                     }
 
                     // Check if the time is late and apply the 'late' class (excluding Sundays)
@@ -1262,6 +1269,8 @@ function getMonthName(monthIndex) {
 }
 
 function calculatePer(db, dateBefore) {
+    console.log(db)
+    console.log(dateBefore)
     let total = 0;
     let countSuns = 0;
     let detector;
@@ -1431,4 +1440,11 @@ function getColor(number) {
     var cssColor = 'rgb(' + color.join(',') + ')';
 
     return number >= 75 ? 'rgb(0,255,0)' : cssColor;
+}
+
+function isDateBeforeToday(userDateString) {
+    let [dd, mm, yyyy] = userDateString.split("-");
+    const userDate = new Date(`${mm}/${dd}/${yyyy}`);
+    const today = new Date();
+    return userDate < today;
 }

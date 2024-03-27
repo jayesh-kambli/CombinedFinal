@@ -8,15 +8,16 @@ include ('header.php');
 <style>
   .list-group-item {
     min-width: 150rem !important;
-}
+  }
 
-table {
+  table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
   }
 
-  th, td {
+  th,
+  td {
     padding: 10px;
     border: 1px solid #ddd;
     position: relative;
@@ -28,12 +29,14 @@ table {
   }
 
   .present {
-    background-color: #4CAF50; /* Green */
+    background-color: #4CAF50;
+    /* Green */
     color: white;
   }
 
   .absent {
-    background-color: #f44336; /* Red */
+    background-color: #f44336;
+    /* Red */
     color: white;
   }
 
@@ -46,7 +49,8 @@ table {
   }
 
   .sunday {
-    background-color: #808080; /* Grey */
+    background-color: #808080;
+    /* Grey */
     color: white;
   }
 
@@ -221,7 +225,10 @@ table {
     document.getElementById("student_table").addEventListener('click', (event) => {
       if (event.target.tagName == "BUTTONA") {
         stuAtData = JSON.parse(JSON.parse(event.target.getAttribute("data-attendance")));
-        document.getElementById("ModalForReportsBody").innerHTML = `Name: ${event.target.getAttribute("data-student_id")}`;
+        let [yyyy, mm, dd] = event.target.getAttribute("start-date").split("-");
+        const userDate = `${mm}-${dd}-${yyyy}`;
+        document.getElementById("ModalForReportsBody").innerHTML = `Name: ${event.target.getAttribute("data-student_id")}<br>
+        Percentage: ${calculatePer(stuAtData.atData, userDate)}%`;
         generateAttendanceCalendar(stuAtData, 'ModalForReportsBody')
       }
     });
@@ -282,6 +289,7 @@ table {
 
   function generateAttendanceCalendar(data, parentElement) {
     for (const calendarData of data.atData) {
+      let dateDetection = calendarData.yearMonth;
       const [mm, yyyy] = calendarData.yearMonth.split("-");
       let date = new Date(`${yyyy}-${mm}-01`);
       let currentMonth = date.getMonth();
@@ -326,20 +334,26 @@ table {
 
             // Check attendance for the day and apply appropriate class
             const attendance = calendarData.days[dayOfMonth - 1];
-            if (attendance === 1) {
-              cell.classList.add('present');
-              tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
-            } else if (attendance === 0) {
-              cell.classList.add('absent');
-              tooltip.textContent = 'Absent';
-            } else if (attendance === 2) {
+            if (isDateBeforeToday(`${dayOfMonth}-` + dateDetection)) {
+              if (attendance === 1) {
+                cell.classList.add('present');
+                tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
+              } else if (attendance === 0) {
+                cell.classList.add('absent');
+                tooltip.textContent = 'Absent';
+              } else if (attendance === 2) {
+                cell.classList.add('yellow');
+                tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
+              }
+            } else {
               cell.classList.add('yellow');
-              tooltip.textContent = calendarData.times[dayOfMonth - 1] || '';
+              tooltip.textContent = "Not recorded";
             }
 
             // Check if it's Sunday and apply the 'sunday' class
             if (i === 0 && attendance !== 2) {
               cell.classList.add('sunday');
+              tooltip.textContent = "sunday";
             }
 
             // Check if the time is late and apply the 'late' class (excluding Sundays)
@@ -367,18 +381,53 @@ table {
   }
 
   function calculatePer(db, dateBefore) {
+    console.log(db)
+    console.log(dateBefore)
     let total = 0;
+    let countSuns = 0;
+    let detector;
     db.forEach((ele) => {
       let moye = ele.yearMonth;
       ele.days.forEach((at, i) => {
-        if (
-          isDateBeforeToday(`${i + 1}-${moye}`) &&
-          at == 1 &&
-          isDateAfter(dateBefore, `${i + 1}-${moye}`)
-        )
+        if (isDateBeforeToday(`${i + 1}-${moye}`) && at == 1 && isDateAfter(dateBefore, `${i + 1}-${moye}`)) {
           total += 1;
+          if (detector != ele.yearMonth) {
+            countSuns += countSundays(ele.yearMonth);
+            detector = ele.yearMonth;
+          }
+        }
       });
     });
+    countSuns -= remainingSundaysInMonth();
+    total -= countSuns;
+
+    function remainingSundaysInMonth() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const currentDay = today.getDate();
+      let count = 0;
+
+      // Check remaining days in the month starting from today
+      for (let day = currentDay; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
+      }
+
+      return count;
+    }
+
+    function countSundays(inputDate) {
+      const [month, year] = inputDate.split("-").map(Number);
+      let count = 0;
+      for (let day = 1; day <= 31; day++) {
+        const date = new Date(year, month - 1, day); // Months are 0-based in JavaScript
+        if (date.getMonth() !== month - 1) break; // Check if we've moved to the next month
+        if (date.getDay() === 0) count++; // Sunday is represented by 0 in JavaScript
+      }
+      return count;
+    }
 
     function isDateBeforeToday(userDateString) {
       let [dd, mm, yyyy] = userDateString.split("-");
@@ -403,6 +452,7 @@ table {
       const totalDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
       const numberOfSundays = Math.floor((totalDays + start.getDay()) / 7);
       const result = totalDays - numberOfSundays;
+      console.log(result);
       return result;
     }
 
@@ -419,5 +469,12 @@ table {
     }
 
     return Math.ceil(calculatePercentage(total, getTotalDaysExcludingSundays(dateBefore)));
+  }
+
+  function isDateBeforeToday(userDateString) {
+    let [dd, mm, yyyy] = userDateString.split("-");
+    const userDate = new Date(`${mm}/${dd}/${yyyy}`);
+    const today = new Date();
+    return userDate < today;
   }
 </script>
